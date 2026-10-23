@@ -328,6 +328,8 @@ Fault-injection requirements: external-power interruption, DataHub loss, GNSS lo
 
 [R7] [F10N integration manual](https://content.u-blox.com/sites/default/files/documents/NEO-F10N_IntegrationManual_UBXDOC-963802114-12193.pdf)
 
+[R8] [Per-component datasheets and open discrepancies](data/README.md)
+
 ## Optional A — Large Piezo Alarm instead of Qwiic Buzzer
 
 ### A1. Change summary
