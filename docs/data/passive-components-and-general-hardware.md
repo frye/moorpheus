@@ -19,10 +19,10 @@ This file collects the passive parts called out in the build guide and the gener
 | C_SENSE | 100 nF | 1 | sense node → GND (optional per guide) | X7R ceramic, ≥ 10 V |
 | C_DEC | 100 nF | per IC/breakout as needed | Supply pins to GND, close to load | X7R ceramic, ≥ 10 V (≥ 25 V on 12 V rail) |
 | R_G | 100–330 Ω (220 Ω) | 1 | GP17 → MOSFET gate | 1 %/5 % |
-| R_PD | 8.2 kΩ | 1 | Gate → source; RP2350 A2/E9 workaround | 1 %/5 % |
+| R_PD | 6.8 kΩ ±5% | 1 | Gate → source; with R_G ≤330 Ω, GP17-to-ground remains <8.2 kΩ for RP2350 A2/E9 | 5 % |
 | Optional R_F, C_F | 1 kΩ, 100 nF | 2 each | Button RC filter | see momentary-pushbuttons.md |
 
-On RP2350 A2 silicon, erratum E9 can hold a weakly pulled-down GPIO near 2.1–2.2 V. The 8.2 kΩ gate pull-down follows the documented workaround; a verified unaffected stepping is an alternative [5][6]. See logic-level-n-mosfet-driver.md.
+On RP2350 A2 silicon, erratum E9 can hold a weakly pulled-down GPIO near 2.1–2.2 V. The 6.8 kΩ ±5% gate pull-down and maximum 330 Ω series resistor keep the effective external pull-down at GP17 below the documented 8.2 kΩ limit, including tolerance. A verified unaffected stepping is an alternative [5][6]. See logic-level-n-mosfet-driver.md.
 
 ### EXT5 sense divider calculations
 
@@ -78,7 +78,7 @@ Place R_BOT and C_SENSE next to the Pico pin; R_TOP can be at the EXT5 end so th
 | EXT5 divider | 20 µA at 5.0 V | calculation |
 | Button pull-ups, pressed | 0.33 mA each | calculation |
 | CS pull-up, CS asserted low | 33 µA (100 kΩ) | calculation |
-| Gate pull-down while alarm on | ≈0.40 mA (8.2 kΩ) | calculation |
+| Gate pull-down while alarm on | ≈0.46 mA (6.8 kΩ + 220 Ω) | calculation |
 | Decoupling capacitors | leakage only | estimate |
 
 ## 6. Programming / configuration

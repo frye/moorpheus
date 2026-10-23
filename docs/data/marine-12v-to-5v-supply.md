@@ -91,7 +91,7 @@ flowchart TD
 | Optional B | MPM3610 input (GPS, e-paper, buzzer) | **unverified — measure peak during e-paper refresh** | — |
 | Optional B | Large Piezo at 5 V | **unverified — measure**; 12 V option ≈40 mA at 12 V (≈0.1 A from 5 V via boost, estimate) | [1] |
 
-**Recommendation:** size EXT5 for ≥2 A continuous to cover the configured charger input limit (≤1.5 A after the required RILIM change) plus system load [8]. All three candidates meet this at 12–14.8 V input [5][6][7].
+**Recommendation:** size EXT5 for ≥2 A continuous, providing margin above the configured charger input current limit (≤1.5 A after the required RILIM change) [8]. That charger limit includes downstream system load; system load reduces the charge current available to the battery. All three candidates meet this at 12–14.8 V input [5][6][7].
 
 ## 5. Power requirements & consumption
 
@@ -137,7 +137,7 @@ Boat-side draw is small compared with typical house-bank capacity, but the alarm
 2. Measure no-load input current at 12.8 V.
 3. Reverse-polarity test at 12 V with a 0.5 A current limit (converter must survive; fuse/TVS path checked separately).
 4. Fit fuse within 7 in of the source; measure loop resistance and voltage drop at 1 A.
-5. Connect EXT5 to the bq24074 VBUS pad; confirm EXT5 ≥4.9 V while charging at the configured input limit (≤1.5 A) plus full system load.
+5. Connect EXT5 to the bq24074 VBUS pad; enable charging and apply full system load. Confirm EXT5 remains ≥4.9 V and measure combined charger input current against the configured limit (≤1.5 A); verify the battery charge current reduces as downstream load increases.
 6. Engine start/stop and alternator on/off: scope EXT5 and the converter input for dips/spikes.
 7. Check converter temperature after 1 h at the maximum observed load inside the closed enclosure.
 

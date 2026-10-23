@@ -102,7 +102,7 @@ The MCP23017 and its interrupt/pull-up wiring are omitted. Do not buy it for thi
 | 1 | Large Piezo Alarm — 16 Tone | [SparkFun COM-13939](https://www.sparkfun.com/large-piezo-alarm-16-tone.html) | Omit Qwiic Buzzer if selected |
 | 1 | Qualified logic-level N-MOSFET or driver | [SparkFun component selection](https://www.sparkfun.com/components.html) | Exact part not yet selected; low resistance specified at gate drive ≤2.5 V |
 | 1 | 100–330 ohm gate resistor | Resistor assortment | Proposed circuit value |
-| 1 | 8.2 kohm gate-to-source pull-down | Resistor assortment | RP2350-E9 A2 workaround; off through reset/high-impedance states |
+| 1 | 6.8 kohm ±5% gate-to-source pull-down | Resistor assortment | RP2350-E9 A2 workaround; with up to 330 ohm gate series resistor, GP17-to-ground remains below 8.2 kohm |
 | 1, only if needed | Regulated 12 V boost converter | Part to be qualified | Optional louder supply; correct input range/current/enable behavior |
 
 ### General hardware
@@ -151,7 +151,7 @@ Use a rated diode and verify voltage drop and heating. Do not exceed VSYS=5.5 V 
 
 The gauge battery connectors sense the pack; logic VIN is PERIPH3V3. Follow the breakout pinout rather than confusing battery sensing with logic supply. Set charger current and temperature precautions for the selected pack.
 
-The stock bq24074 breakout's 1 kΩ RILIM is below TI's 1.1 kΩ minimum; replace it with 1.2 kΩ nominal or higher so the actual resistance stays at or above the limit (ILIM no more than 1.5 A) before use. The stock 10 kΩ termination resistor calculates to about 0.3 A termination at the 1 A charge setting; this is not a measured pack result. Verify charge completion on the selected pack before relying on it. The EXT5 budget must include the charger's selected input limit and system load.
+The stock bq24074 breakout's 1 kΩ RILIM is below TI's 1.1 kΩ minimum; replace it with 1.2 kΩ nominal or higher so the actual resistance stays at or above the limit (ILIM no more than 1.5 A) before use. The stock 10 kΩ termination resistor calculates to about 0.3 A termination at the 1 A charge setting; this is not a measured pack result. Verify charge completion on the selected pack before relying on it. Size EXT5 for at least 2 A continuous, providing margin above the charger's configured input current limit; the limit applies to total charger input current, including the downstream load, so system load reduces the charge current available to the battery.
 
 Do not connect the PowerBoost LBO pin directly to a Pico GPIO: its high level can be related to the charger LOAD rail (up to about 4.4 V). Leave LBO unconnected and use the MAX17048 for battery state.
 
@@ -358,11 +358,11 @@ flowchart TD
     S --> GND["Common ground"]
     GPIO["Pico GP17 physical pin 22"] --> R["100–330 ohm gate resistor"]
     R --> G["MOSFET gate"]
-    G --> PD["8.2 kohm gate-source pull-down"]
+    G --> PD["6.8 kohm gate-source pull-down"]
     PD --> GND
 ```
 
-MOSFET pinout is device-specific. Choose specified low on-resistance at gate voltage ≤2.5 V, not merely low threshold. Ensure voltage/current/thermal margin. Sounder current must not pass through GPIO. Use an 8.2 kohm gate-to-source pull-down to hold the alarm off through reset on RP2350 A2 silicon (E9); a verified unaffected stepping is an alternative. Validate low-voltage and sleep-state behavior.
+MOSFET pinout is device-specific. Choose specified low on-resistance at gate voltage ≤2.5 V, not merely low threshold. Ensure voltage/current/thermal margin. Sounder current must not pass through GPIO. On RP2350 A2 silicon (E9), use a 6.8 kohm ±5% gate-to-source pull-down and keep the GP17-to-gate series resistor at 330 ohm maximum; even at worst-case resistor tolerance this keeps the external pull-down seen by GP17 below 8.2 kohm. A verified unaffected stepping is an alternative. Validate low-voltage and sleep-state behavior.
 
 ### A3. Pico SDK example
 
