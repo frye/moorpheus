@@ -28,7 +28,7 @@ There are five concepts in total, each drawn for the 600 × 400 e-paper panel an
 ## What's in the repo
 
 - [`docs/pico_2_w_anchor_alarm_build_guide_v2.md`](docs/pico_2_w_anchor_alarm_build_guide_v2.md) is the main document. It covers the parts list, power design, pin assignments, firmware approach, display policy and the two optional variants (a louder piezo alarm, and a version without a battery).
-- [`docs/data/`](docs/data/) has one reference file per component: specs, wiring, power notes and sources. It's mostly there so that AI coding agents can look things up without redoing the research each time, but it's readable enough for people too. Its [README](docs/data/README.md) also lists places where the research disagrees with the build guide and still needs sorting out.
+- [`docs/data/`](docs/data/) has one reference file per component: specs, wiring, power notes and sources. It's mostly there so that AI coding agents can look things up without redoing the research each time, but it's readable enough for people too. Its [README](docs/data/README.md) tracks design checks and measurements that remain open.
 - [`layouts/`](layouts/) is the static HTML mockup gallery, with screenshots in [`layouts/screenshots/`](layouts/screenshots/).
 
 ## Status
@@ -36,7 +36,7 @@ There are five concepts in total, each drawn for the 600 × 400 e-paper panel an
 - [x] Build guide drafted
 - [x] Component reference notes collected
 - [x] Display layout concepts mocked up
-- [ ] Resolve the open discrepancies in [`docs/data/README.md`](docs/data/README.md)
+- [ ] Complete the open design checks in [`docs/data/README.md`](docs/data/README.md)
 - [ ] Breadboard prototype
 - [ ] Firmware
 

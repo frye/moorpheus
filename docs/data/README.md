@@ -25,29 +25,9 @@ Per-component spec, wiring, programming and power notes for the parts in the [Pi
 
 ## Open discrepancies with the build guide
 
-These came out of the research. The build guide has not been changed yet; review each one before building.
+The controller, display, GNSS and power conflicts formerly listed here have been reconciled with the build guide. The following design checks remain unverified or installation-dependent; they do not indicate a known documentation mismatch and are not grounds for silently changing a component value or claiming hardware validation.
 
-**Controller and firmware**
-- **Watchdog:** the maximum timeout (about 16.7 s) is shorter than the 19 s display refresh, so the watchdog must be fed while waiting on the display.
-- **Debug serial:** the `pico2_w` board setting sends debug serial to GP0/GP1, the GPS UART pins. Use USB for debug output instead.
-- **Alarm gate pull-down:** on early RP2350 chips (A2, erratum E9), the guide's 100 kΩ resistor may not hold the alarm off at boot. Use 10 kΩ or less.
-
-**Display**
-- **CS pull-up:** CS goes through the board's TXB0108 level shifter, which needs pull-ups above 50 kΩ. Use about 100 kΩ instead of the guide's 10 kΩ.
-- **Refresh limits:** Waveshare recommends at least 180 s between refreshes and at least one refresh every 24 h. A STATUS tap and the Emergency60 policy can each break one of these.
-
-**GNSS**
-- **Interface:** the NEO-F10N is UART-only.
-- **Standby:** there is no power save mode, only software standby, and standby loses settings held in RAM. Save the configuration to battery-backed RAM or flash.
-- **Antenna power:** the antenna stays powered in standby (about 17 mA). Its supply (about 3.03 V) sits right at the antenna's 3.0 V minimum.
-- **USB back-feed:** cut both USB-to-UART jumpers, because USB-C can feed power back into PERIPH3V3.
-
-**Power**
-- **bq24074 board:**
-  - Feed EXT5 to the VBUS pad, not the DC jack: the jack's diode drops about 0.5 V.
-  - The 1 kΩ input-limit resistor is below TI's 1.1 kΩ minimum.
-  - Charging stops at about 0.3 A, so it ends early on small packs.
-- **PowerBoost low-battery pin:** it can sit at up to about 4.4 V, so it must not connect straight to a Pico pin.
-- **Load dump:** boat load-dump spikes exceed the rating of every candidate converter, so the supply needs surge clamping in front.
-
-Code snippets have been syntax-checked against stub headers only; none have run on hardware. Measure every current marked "unverified" or "measure".
+- **ANN-MB5 supply margin:** measure antenna voltage and current at the SMA under load with the installed cable. The estimated voltage is close to the antenna's 3.0 V minimum, and current at this rail is not specified.
+- **bq24074 termination behavior:** the stock termination resistor calculates to about 0.3 A at the 1 A setting, but charge completion on the selected battery is unmeasured. Verify the selected pack and charger configuration before relying on it.
+- **Boat input transient protection:** the candidate converters are below the cited unsuppressed load-dump voltage. A TVS sized for short transients is not proof of protection against a sustained load dump. Confirm the vessel's alternator/battery protection or qualify additional series/pre-regulator protection for that installation.
+- **Prototype measurements:** retain every "unverified" or "measure" label in the component notes until measured on the assembled design. Code examples remain syntax-checked against stub headers only; none have run on hardware.
