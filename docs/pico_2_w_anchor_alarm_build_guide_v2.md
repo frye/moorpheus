@@ -2,6 +2,10 @@
 
 Revision 2.0 · 22 October 2026
 
+Copyright (c) 2026 Sam Jarvinen. Part of
+[moorpheus](https://github.com/frye/moorpheus), licensed under
+[Creative Commons Attribution 4.0 International (CC BY 4.0)](LICENSE).
+
 ## 1. Scope and configuration choices
 
 This is the Pico 2 W edition of the anchor-alarm build. It replaces the XIAO ESP32C3 rather than adding a second controller.

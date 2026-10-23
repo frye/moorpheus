@@ -39,3 +39,23 @@ There are five concepts in total, each drawn for the 600 × 400 e-paper panel an
 - [ ] Resolve the open discrepancies in [`docs/data/README.md`](docs/data/README.md)
 - [ ] Breadboard prototype
 - [ ] Firmware
+
+## Licensing
+
+Copyright (c) 2026 Sam Jarvinen.
+
+- **Code**, including the HTML, CSS, and JavaScript in `layouts/`, is licensed
+  under the [MIT License](LICENSE).
+- **Documentation**, including this README and the material in `docs/`, is
+  licensed under [Creative Commons Attribution 4.0 International
+  (CC BY 4.0)](docs/LICENSE).
+
+These licenses apply to their respective parts of the project; they are not
+alternative licenses for the same material. Both permit commercial use.
+Third-party material, including external fonts and dependencies, remains subject
+to its own license terms and is not relicensed by this project.
+
+When sharing documentation, credit Sam Jarvinen, link to the
+[moorpheus project](https://github.com/frye/moorpheus) and
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), and indicate any
+changes, as required by the license.
