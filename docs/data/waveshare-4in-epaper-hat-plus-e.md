@@ -105,6 +105,28 @@ The kit ships a 20 cm GH1.25 9-pin cable [2]. The far-end connector type and the
 
 ## 4. Wiring in this project
 
+### Step 1: isolated USB-powered bench setup
+
+Start the build with [Step 1: Pico/toolchain/display bring-up](../display-bring-up.md)
+and the sample in `examples/display-hello/`. For this isolated setup only, P2-1
+VCC comes from **Pico 3V3 OUT, physical pin 36**, instead of PERIPH3V3.
+P2-2 connects to Pico GND pin 13. Keep all seven GPIO connections in the table
+below and use a **100 kΩ CS pull-up to Pico 3V3 OUT**, per the translator
+restriction in this section [10][12][14].
+
+No other peripheral or external supply is connected. The panel's documented
+65.4 mA maximum inrush [3] is below the Pico's recommended external-load budget
+of less than 300 mA (actual available current depends on MCU load and VSYS) [14].
+Whole-board current and panel-side LDO voltage in this arrangement are unverified;
+measure them at bring-up. Keep the panel rail at 2.5–3.6 V as noted below [1][3].
+Never tie an external PERIPH3V3 regulator output to Pico 3V3 OUT [12].
+
+The sample performs one refresh of black text on white, then deep-sleeps and
+powers down the display. Resetting it can violate the 180 s minimum interval;
+the operator must observe that interval between runs [1].
+
+### Full alarm wiring
+
 | HAT P2 pin | Signal | Pico 2 W | Pico pin | Net / note |
 |---|---|---|---|---|
 | 1 | VCC | — | — | PERIPH3V3 (MPM3610 buck output) [12] |
@@ -473,3 +495,4 @@ The row callback packs pixels as `row[x/2] = (left << 4) | right`, matching `get
 [11] Waveshare, Pico_ePaper_Code repository (no 4in0e driver present): https://github.com/waveshareteam/Pico_ePaper_Code
 [12] Project build guide: docs/pico_2_w_anchor_alarm_build_guide_v2.md (sections 4–6, 8, 9)
 [13] Raspberry Pi, RP2350 datasheet (GPIO pads, errata RP2350-E9): https://datasheets.raspberrypi.com/rp2350/rp2350-datasheet.pdf
+[14] Raspberry Pi, Pico 2 W datasheet (3V3 OUT, power and pinout): https://pip.raspberrypi.com/documents/RP-008304-DS

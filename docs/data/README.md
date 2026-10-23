@@ -50,4 +50,4 @@ These came out of the research. The build guide has not been changed yet; review
 - **PowerBoost low-battery pin:** it can sit at up to about 4.4 V, so it must not connect straight to a Pico pin.
 - **Load dump:** boat load-dump spikes exceed the rating of every candidate converter, so the supply needs surge clamping in front.
 
-Code snippets have been syntax-checked against stub headers only; none have run on hardware. Measure every current marked "unverified" or "measure".
+Code snippets in these component references have been syntax-checked against stub headers only; none have run on hardware. The separate [Step 1 display sample](../display-bring-up.md) has a real Pico SDK target build and host checks, but no hardware results. Measure every current marked "unverified" or "measure".

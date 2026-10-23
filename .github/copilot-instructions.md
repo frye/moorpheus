@@ -4,10 +4,13 @@ Moorpheus is a boat anchor-drag alarm built on a Raspberry Pi Pico 2 W, a SparkF
 
 ## Project stage
 
-The project is in design and planning. There is no firmware or other working code yet. Nothing has been built or tested on hardware.
+The anchor alarm is in design and planning. `examples/display-hello/` contains
+the Step 1 display-only Pico SDK sample, which builds for Pico 2 W and has host
+checks. Nothing has been assembled or tested on hardware. Later phases build on
+this baseline only after the on-device acceptance gate in `docs/display-bring-up.md`.
 
 - Don't describe anything as built, tested, validated or working unless the repository contains evidence of it.
-- Code snippets in the docs have only been syntax-checked against stub headers. Treat them as untested.
+- Code snippets in the component docs have only been syntax-checked against stub headers. Treat them as untested; the separately built Step 1 sample is not hardware-qualified either.
 - This is a prototype, not a certified marine safety system. Keep the existing safety caveats when you edit docs.
 
 ## Repository map
@@ -15,6 +18,8 @@ The project is in design and planning. There is no firmware or other working cod
 | Path | Purpose |
 |---|---|
 | `README.md` | Human-facing overview and current status |
+| `docs/display-bring-up.md` | Step 1: USB-only wiring, toolchain, flashing and on-device acceptance |
+| `examples/display-hello/` | Standalone display-only C/Pico SDK sample and host checks |
 | `docs/pico_2_w_anchor_alarm_build_guide_v2.md` | Main design document: parts, power, GPIO map, firmware approach, display policy, optional variants A and B |
 | `docs/best-language-framework-update-mechanism.md` | Firmware language, framework and update-mechanism decision |
 | `docs/data/` | One reference file per component (specs, wiring, programming, power, sources) |
