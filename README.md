@@ -3,7 +3,7 @@
 An anchor-drag alarm for a boat, built around a Raspberry Pi Pico 2 W, a GNSS receiver and a small colour e-paper screen.
 
 > [!NOTE]
-> **There's no working code here yet.** The repository holds design and planning work only: a build guide, notes on each part and some mockups of what the screens could look like. Nothing has been built or tested on hardware. This README will change once there's firmware you can actually run.
+> **Start with the display bring-up, not the full alarm.** There is a display-only C/Pico SDK sample that builds for the Pico 2 W. The anchor alarm is still design and planning work. Nothing has been assembled or tested on hardware.
 
 ## The idea
 
@@ -27,7 +27,9 @@ There are five concepts in total, each drawn for the 600 × 400 e-paper panel an
 
 ## What's in the repo
 
-- [`docs/pico_2_w_anchor_alarm_build_guide_v2.md`](docs/pico_2_w_anchor_alarm_build_guide_v2.md) is the main document. It covers the parts list, power design, pin assignments, firmware approach, display policy and the two optional variants (a louder piezo alarm, and a version without a battery).
+- [`docs/build-steps.md`](docs/build-steps.md) is the step-by-step path through the build. Start with Step 1, which brings up the Pico, toolchain and display before adding other hardware. The page links to the full [build guide](docs/pico_2_w_anchor_alarm_build_guide_v2.md) and the detailed [Step 1 display instructions](docs/display-bring-up.md).
+- [`docs/pico_2_w_anchor_alarm_build_guide_v2.md`](docs/pico_2_w_anchor_alarm_build_guide_v2.md) is the full design reference for parts, power, pin assignments, firmware, display policy and optional variants.
+- [`examples/display-hello/`](examples/display-hello/) contains the standalone Step 1 sample.
 - [`docs/data/`](docs/data/) has one reference file per component: specs, wiring, power notes and sources. It's mostly there so that AI coding agents can look things up without redoing the research each time, but it's readable enough for people too. Its [README](docs/data/README.md) tracks design checks and measurements that remain open.
 - [`layouts/`](layouts/) is the static HTML mockup gallery, with screenshots in [`layouts/screenshots/`](layouts/screenshots/).
 
@@ -36,9 +38,11 @@ There are five concepts in total, each drawn for the 600 × 400 e-paper panel an
 - [x] Build guide drafted
 - [x] Component reference notes collected
 - [x] Display layout concepts mocked up
+- [x] Step 1 display-only sample builds for Pico 2 W
 - [ ] Complete the open design checks in [`docs/data/README.md`](docs/data/README.md)
 - [ ] Breadboard prototype
-- [ ] Firmware
+- [ ] Step 1 on-device acceptance
+- [ ] Anchor-alarm firmware
 
 ## Licensing
 

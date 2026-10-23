@@ -307,12 +307,18 @@ Do not apply conversion losses twice if power is measured at the battery. Includ
 
 ## 12. Assembly and acceptance
 
-1. Verify pin orientation, models/revisions and polarity.
-2. Program Pico alone; configure the correct Pico 2 W target.
+Follow the [step-by-step build path](build-steps.md). Start with [Step 1: bring up the Pico, toolchain and display](display-bring-up.md).
+It provides the USB-only wiring and a standalone `Hello Moorpheus` sample.
+Pass its on-device acceptance gate before extending that baseline in later phases.
+The bench display supply comes from Pico 3V3 OUT, unlike the full build's
+PERIPH3V3; disconnect that bench supply lead before connecting the external rail.
+
+1. Verify pin orientation, models/revisions and polarity for the Step 1 bench wiring.
+2. Complete Step 1: build for Pico 2 W, flash over USB, and confirm USB diagnostics, panel voltage, visible text and display shutdown.
 3. Build protected power distribution and confirm rails under load.
 4. Add gauge and baseline buzzer; scan I2C addresses.
 5. Add buttons and test startup/wake/ACK behavior.
-6. Add exact display driver; check alarm processing during full refresh.
+6. Integrate the Step 1 display driver with the other services; check alarm processing during full refresh.
 7. Add GNSS continuously; configure jumpers and UART; compare roof/open-sky reception.
 8. Add DataHub interface and test reconnection/loss.
 9. Add standby scheduling and measure acquisition distribution and actual energy.

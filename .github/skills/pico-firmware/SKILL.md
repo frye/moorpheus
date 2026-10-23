@@ -11,6 +11,10 @@ Get pins, timings and part behaviour from the `moorpheus-hardware-facts` skill. 
 
 C with Pico SDK 2.3.x, a cooperative non-blocking service loop, `pico_cyw43_arch_lwip_threadsafe_background`, and RP2350 A/B partitions with Try-Before-You-Buy (TBYB) for updates, with USB BOOTSEL and UF2 for recovery. Don't use an RTOS, MicroPython or Arduino unless the user asks. The rationale is in `docs/best-language-framework-update-mechanism.md`.
 
+Step 1 in `examples/display-hello/` is display-only bench firmware. It deliberately
+omits networking, OTA partitions, watchdog and other alarm services. Extend this
+baseline in later phases; do not mistake it for the complete alarm architecture.
+
 ## C rules
 
 - Use C11 (the SDK default), `<stdint.h>` fixed-width types, `static` for anything internal to a file, and `const` wherever data doesn't change.
@@ -36,4 +40,20 @@ Report host tests, firmware builds and on-hardware results separately. Never say
 
 ## Build and flash
 
-The repository has no firmware tree yet. Once one exists, add the verified build, test and flash commands here. Until then, don't present any commands as tested.
+Step 1 is documented in `docs/display-bring-up.md`. From the repository root,
+with `PICO_SDK_PATH` set and Arm GCC on PATH:
+
+```sh
+cmake -S examples/display-hello -B examples/display-hello/build -DPICO_BOARD=pico2_w
+cmake --build examples/display-hello/build --parallel 4
+cmake -S examples/display-hello/tests -B examples/display-hello/build-host
+cmake --build examples/display-hello/build-host
+ctest --test-dir examples/display-hello/build-host --output-on-failure
+```
+
+The target build and host checks passed with SDK 2.3.0 and Arm GCC 14.3.1.
+When GCC is not on PATH, configure with `-DPICO_TOOLCHAIN_PATH` pointing to its
+installation directory. The output is
+`examples/display-hello/build/display_hello.uf2`. Flash via USB BOOTSEL by copying
+that UF2 onto the RP2350 drive. Flashing, electrical behaviour and the visible
+message have not been tested on hardware. Observe at least 180 s between runs.

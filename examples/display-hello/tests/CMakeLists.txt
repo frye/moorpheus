@@ -1,0 +1,10 @@
+cmake_minimum_required(VERSION 3.13)
+project(display_hello_tests C)
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+enable_testing()
+
+add_executable(display_hello_tests test.c ../render.c ../epd.c)
+target_include_directories(display_hello_tests PRIVATE .. fakes)
+target_compile_options(display_hello_tests PRIVATE -Wall -Wextra -Werror -UNDEBUG)
+add_test(NAME display_hello_tests COMMAND display_hello_tests)
