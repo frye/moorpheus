@@ -20,6 +20,7 @@ The project is in design and planning. There is no firmware or other working cod
 | `docs/data/README.md` | Component index plus **Open discrepancies with the build guide** |
 | `layouts/` | Static HTML/JS mockups of the display concepts (`index.html`, `app.js`, `styles.css`) |
 | `layouts/screenshots/` | PNG captures of selected layouts, used in the README |
+| `.github/skills/` | Agent skills: `moorpheus-hardware-facts` (where to look up hardware facts) and `pico-firmware` (C firmware rules for this stack) |
 
 ## Use the reference material before researching
 
