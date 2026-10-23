@@ -4,7 +4,7 @@
 
 ## 1. Overview
 
-The MAX17048 is a 1-cell Li-ion fuel gauge that estimates state of charge (SOC) from cell voltage only, using the ModelGauge algorithm — no sense resistor and no coulomb counting [3]. The Adafruit 5580 breakout adds two JST-PH battery ports wired in parallel (pass-through), STEMMA QT/Qwiic connectors and I2C pull-ups [1][2]. In this project it sits in-line on net **BAT** between the pack and the bq24074, and the firmware reads it over I2C0 (GP4/GP5) to drive SOC refresh thresholds and Emergency60 mode at ≤20 % SOC [4].
+The MAX17048 is a 1-cell Li-ion fuel gauge that estimates state of charge (SOC) from cell voltage only, using the ModelGauge algorithm — no sense resistor and no coulomb counting [3]. The Adafruit 5580 breakout adds two JST-PH battery ports wired in parallel (pass-through), STEMMA QT/Qwiic connectors and I2C pull-ups [1][2][6]. In this project it sits in-line on net **BAT** between the pack and the bq24074, and the firmware reads it over I2C0 (GP4/GP5) to drive SOC refresh thresholds and Emergency60 mode at ≤20 % SOC [4].
 
 ## 2. Key specifications
 
@@ -91,7 +91,7 @@ flowchart TD
 
 ## 6. Programming / configuration
 
-### Registers (all 16-bit, MSB first) [3]
+### Registers (all 16-bit, MSB first) [3], cross-checked against Adafruit's driver library [5]
 
 | Addr | Name | R/W | Meaning / scaling | Default |
 |---|---|---|---|---|

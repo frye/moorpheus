@@ -79,7 +79,7 @@ flowchart LR
 
 ## 6. Programming / configuration
 
-GPIO IRQ on both edges, timestamped; a periodic poll (10 ms) applies a 40 ms debounce and long-press detection. The IRQ wakes the logic quickly; the poll makes debounce deterministic.
+GPIO IRQ on both edges, timestamped; a periodic poll (10 ms) applies a 40 ms debounce and long-press detection. The IRQ wakes the logic quickly; the poll makes debounce deterministic. The callback and GPIO setup use the Pico SDK GPIO API [7].
 
 ```c
 #include "pico/stdlib.h"
