@@ -25,7 +25,7 @@ The optional piezo alarm (25–60 mA at 5–16 V [6]) is switched on its negativ
 - Si2302 (Vishay): commonly cited as 2.5 V-rated; the datasheet could not be retrieved during this research — unverified.
 - SparkFun "N-Channel MOSFET 60V 30A" is FQP30N06L; R_DS(on) is specified only at V_GS = 10 V and 5 V, and V_GS(th) can be as high as 2.5 V, leaving almost no overdrive at 3.3 V [5].
 
-> ⚠️ Discrepancy with build guide: none on part choice (guide does not specify a part). See the RP2350-E9 note in §7 regarding the 100 kΩ pull-down.
+The RP2350-E9 pull-down selection is documented in §7; the guide specifies a 6.8 kΩ ±5% pull-down and no more than 330 Ω series resistance for A2 silicon.
 
 ## 3. Pinout / connections
 
@@ -41,7 +41,7 @@ Pinout caution:
 | Component | From | To | Value / note |
 |---|---|---|---|
 | Rg (series gate) | GP17 (pin 22) | Q1 gate | 100–330 Ω (220 Ω suggested) [7] |
-| Rpd (gate pull-down) | Q1 gate | Q1 source / GND | Guide: 100 kΩ; see E9 note — consider 10 kΩ [7][8] |
+| Rpd (gate pull-down) | Q1 gate | Q1 source / GND | 6.8 kΩ ±5%; keep GP17-to-ground resistance below 8.2 kΩ including Rg for RP2350 A2/E9 [7][8] |
 | Q1 source | — | GND (Pico GND, short return) | — |
 | Q1 drain | Alarm − terminal | — | — |
 | Alarm + | SYS5 / EXT5 / 12 V boost | — | [6][7] |
@@ -56,7 +56,7 @@ flowchart LR
   S --> G0["GND"]
   P17["GP17 pin 22"] --> RG["Rg 220 ohm"]
   RG --> GT["Q1 gate pin 1"]
-  GT --> RPD["Rpd 10k to 100k"]
+  GT --> RPD["Rpd 6.8k ±5%"]
   RPD --> G0
   DOPT["Optional D1 or TVS across alarm"] -.-> ALP
 ```
@@ -69,7 +69,7 @@ flowchart LR
 | Conduction loss, AO3400A at 2.5 V drive, 60 mA worst case | I²R = 0.06² × 0.048 ≈ 0.17 mW | estimate from [1][6] |
 | V_DS drop at 40 mA, AO3400A | ≈ 2 mV | estimate |
 | Gate pull-down current while on, 100 kΩ | 33 µA | estimate (3.3 V / 100 kΩ) |
-| Gate pull-down current while on, 10 kΩ | 330 µA | estimate |
+| Gate pull-down current while on, 6.8 kΩ + 220 Ω | ≈470 µA | calculation |
 | Off-state drain leakage | ≤ 1 µA at rated V_DS (AO3400A I_DSS) | datasheet [1] |
 
 Thermal: negligible; no heatsink needed.
@@ -118,7 +118,7 @@ Gate charge timing: Q_g ≈ 7 nC through 220 Ω from a 3.3 V pin switches in wel
 - **Why ≤ 2.5 V rating**: at V_GS = 3.3 V only parts with R_DS(on) guaranteed at 2.5 V give a margin over the 3.3 V GPIO minus any droop; AO3400A guarantees 48 mΩ at 2.5 V [1].
 - **Gate resistor 100–330 Ω** [7]: limits GPIO peak current into C_iss, damps ringing from the gate-lead inductance, and gives some protection if the MOSFET fails gate-drain short.
 - **Pull-down rationale**: during reset, BOOTSEL, flashing and before firmware runs, GP17 is an input; the pull-down holds V_GS ≈ 0 so the alarm stays silent [7].
-- **⚠️ RP2350-E9 erratum (discrepancy with build guide)**: on RP2350 A2 silicon, a GPIO with its input buffer enabled can sit at ≈ 2.1–2.2 V when only a weak external pull-down (> ≈ 8.2 kΩ) is present, because of leakage from the pad [8][9]. 2.1 V exceeds V_GS(th) of all recommended MOSFETs, so with the guide's 100 kΩ pull-down the alarm could partially turn on before firmware drives GP17 low. Mitigations: (a) use Rpd ≤ 8.2–10 kΩ (Adafruit recommends ≤ 8.2 kΩ) [8]; (b) check stepping — A4 silicon fixes E9 (requires pico-sdk ≥ 2.1.0) [10]; (c) in firmware, drive GP17 low as an output immediately at boot and never enable the internal pull-down. A 10 kΩ pull-down with a 220 Ω gate resistor costs only 330 µA while the alarm is on.
+- **RP2350-E9 erratum**: on RP2350 A2 silicon, a GPIO with its input buffer enabled can sit at ≈ 2.1–2.2 V when only a weak external pull-down (> ≈ 8.2 kΩ) is present, because of leakage from the pad [8][9]. 2.1 V exceeds V_GS(th) of all recommended MOSFETs, so the alarm could partially turn on before firmware drives GP17 low. Keep the complete resistance from GP17 through Rg and Rpd to ground below 8.2 kΩ. A 6.8 kΩ ±5% Rpd and Rg ≤330 Ω meet that limit even at tolerance extremes [8]. Verify the stepping (A4 fixes E9; requires pico-sdk ≥ 2.1.0) [10], and drive GP17 low as an output immediately at boot without enabling the internal pull-down. With 6.8 kΩ and 220 Ω Rg, the pull-down current is about 0.47 mA while the alarm is on.
 - **Flyback / snubber**: the CED-ME516AQSW contains its own driver and presents a DC-powered electronic load, not a bare coil, so a flyback diode is generally not required [6]. If a magnetic sounder, relay or long (> 1–2 m) leads are substituted, add a 1N4148/1N5819 across the load (cathode to +) or a TVS (e.g., SMBJ18A for a 12 V rail — proposal) from drain to source.
 - **V_DS rating**: DMG2302U/IRLML2502 (20 V) are adequate for 5 V or 12 V supplies, but with the boost's ≈ 16.5 V OVP and the alarm's 19.2 V surge limit, 30 V parts (AO3400A, IRLML6344) give more margin [1][3][6][11].
 - **ESD**: SOT-23 MOSFETs are ESD-sensitive; handle with grounding.

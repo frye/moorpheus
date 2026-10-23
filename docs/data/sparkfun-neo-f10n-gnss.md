@@ -310,7 +310,7 @@ Usage notes:
 
 ## 7. Design notes, limits & gotchas
 
-- **USB-C port vs PERIPH3V3:** VBUS → D7 → AP2112K output, which is the same net as the 3V3 pin [4]. Plugging USB in while installed puts a second 3.3 V source on PERIPH3V3. The AP2112K's reverse-current behaviour is **unverified**. This matches the guide's caution [8]. After the USB-TX/RX cuts, USB has no data use anyway. Keep the port unplugged or covered.
+- **USB-C port vs PERIPH3V3:** VBUS → D7 → AP2112K output, which is the same net as the 3V3 pin [4]. Plugging USB in while installed puts a second 3.3 V source on PERIPH3V3. The AP2112K's reverse-current behaviour is **unverified**. Cutting USB-TX/USB-RX isolates the CH340 data lines only; it does not isolate this power path. Keep the port unplugged or covered while installed [8].
 - **Do not use the 5V PTH pin** for this design. Power through 3V3 only.
 - **Backfeeding through UART:** the NEO input absolute maximum is VCC + 0.3 V [5]. If GPS power is off while the Pico runs (bench programming, or the future GP18 switch), GP0 idling high would feed the module through RXD. Set GP0 to input / high-Z whenever GPS 3V3 is absent [8]. Also, do not drive any pins in hardware backup mode [5].
 - **Future GP18 power switch:**

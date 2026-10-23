@@ -85,13 +85,13 @@ flowchart TD
 
 | Configuration | Load on EXT5 | Value | Basis |
 |---|---|---|---|
-| Battery build | bq24074 input, limited by ILIM | ≈1.6 A max (1 kΩ ILIM) | calculated from TI KILIM [8] |
+| Battery build | bq24074 input, limited by ILIM | ≤1.5 A design limit (RILIM ≥1.1 kΩ) | per guide; calculated from TI KILIM [8] |
 | Battery build | GP26 divider | 5.0 V / 250 kΩ = 20 µA | calculated [1] |
 | Optional B | Pico 2 W via diode | **unverified — measure peak during Wi-Fi TX** | — |
 | Optional B | MPM3610 input (GPS, e-paper, buzzer) | **unverified — measure peak during e-paper refresh** | — |
 | Optional B | Large Piezo at 5 V | **unverified — measure**; 12 V option ≈40 mA at 12 V (≈0.1 A from 5 V via boost, estimate) | [1] |
 
-**Recommendation:** size EXT5 for ≥2 A continuous (battery build is bounded by the charger's ≈1.6 A input limit) [8]. All three candidates meet this at 12–14.8 V input [5][6][7].
+**Recommendation:** size EXT5 for ≥2 A continuous, providing margin above the configured charger input current limit (≤1.5 A after the required RILIM change) [8]. That charger limit includes downstream system load; system load reduces the charge current available to the battery. All three candidates meet this at 12–14.8 V input [5][6][7].
 
 ## 5. Power requirements & consumption
 
@@ -114,11 +114,11 @@ Boat-side draw is small compared with typical house-bank capacity, but the alarm
 
 ## 7. Design notes, limits & gotchas
 
-- **Load dump exceeds every candidate's rating.** 79–101 V unsuppressed load dump [3][4] is above 50 V (D36V28) and 36 V (D24V22, DDR). Boats usually keep the battery connected to the alternator, but switching the battery selector while charging can cause a load-dump-like event — unverified for a given installation. Use a TVS plus, where the alternator lacks protection, a pre-regulator or series protection.
+- **Load dump exceeds every candidate's rating.** 79–101 V unsuppressed load dump [3][4] is above 50 V (D36V28) and 36 V (D24V22, DDR). Boats usually keep the battery connected to the alternator, but switching the battery selector while charging can cause a load-dump-like event — unverified for a given installation. Confirm the vessel's alternator/battery protection or qualify additional series/pre-regulator protection for the installation; do not assume a TVS alone handles a sustained load dump.
 - **TVS selection** (Vishay SMBJ, 600 W 10/1000 µs) [10]:
   - For D24V22F5 / DDR-15G-5 (36 V max): **SMBJ18A** — VWM 18 V, VBR 20.0 V min, VC 29.2 V at 20.5 A.
   - For D36V28F5 (50 V max): **SMBJ24A** — VWM 24 V, VBR 26.7 V min, VC 38.9 V at 15.4 A; also does not conduct during 24 V jump-start.
-  - VWM must stay above the highest normal bus voltage (≈16 V equalisation) [2]. A 600 W SMB TVS cannot absorb a full 400 ms load dump; it targets short transients (ISO 7637 type) — estimate.
+  - VWM must stay above the highest normal bus voltage (≈16 V equalisation) [2]. A 600 W SMB TVS is for short transients (ISO 7637 type), not a full 400 ms load dump — estimate.
 - **Reverse polarity:** all three candidates include it [5][6][7]; the TVS is unidirectional, so a reversed supply forward-biases it and blows the fuse — acceptable fail-safe behaviour.
 - **Fuse sizing:** fuse protects the wire. Converter input ≈0.9 A at 2 A output (estimate, §5) → **2 A** fuse for D24V22F5; **3 A** for D36V28F5 / DDR-15G-5 to cover start-up inrush (DDR inrush listed as 15 A typ at 24 V input — figure parsed from spec table, verify) [7]. Use slow-blow/ATO type; wire ampacity must exceed fuse rating [11].
 - **ABYC E-11 practice** (summarised from secondary sources; the standard is paywalled — verify against the current edition) [11]:
@@ -137,7 +137,7 @@ Boat-side draw is small compared with typical house-bank capacity, but the alarm
 2. Measure no-load input current at 12.8 V.
 3. Reverse-polarity test at 12 V with a 0.5 A current limit (converter must survive; fuse/TVS path checked separately).
 4. Fit fuse within 7 in of the source; measure loop resistance and voltage drop at 1 A.
-5. Connect EXT5 to the bq24074 VBUS pad; confirm EXT5 ≥4.9 V while charging + full load (≈1.6 A).
+5. Connect EXT5 to the bq24074 VBUS pad; enable charging and apply full system load. Confirm EXT5 remains ≥4.9 V and measure combined charger input current against the configured limit (≤1.5 A); verify the battery charge current reduces as downstream load increases.
 6. Engine start/stop and alternator on/off: scope EXT5 and the converter input for dips/spikes.
 7. Check converter temperature after 1 h at the maximum observed load inside the closed enclosure.
 

@@ -89,7 +89,7 @@ The MCP23017 and its interrupt/pull-up wiring are omitted. Do not buy it for thi
 
 | Qty | Item | Link | Notes |
 |---|---|---|---|
-| 1 | bq24074 charger with load sharing | [Adafruit 4755](https://www.adafruit.com/product/4755) | Feed regulated 5 V; set charge current for actual pack |
+| 1 | bq24074 charger with load sharing | [Adafruit 4755](https://www.adafruit.com/product/4755) | Feed regulated 5 V to VBUS, not the DC jack; replace stock 1 kΩ ILIM with 1.2 kΩ nominal or higher |
 | 1 | PowerBoost 1000 Basic | [Adafruit 2030](https://www.adafruit.com/product/2030) | Charger LOAD to nominal 5.2 V SYS5; not itself a charger |
 | 1 | Protected 1S Li-ion/LiPo pack | [Adafruit batteries](https://www.adafruit.com/category/574) | Capacity after measurement; correct charge chemistry/rating |
 | 1 | MAX17048 fuel-gauge breakout | [Adafruit 5580](https://www.adafruit.com/product/5580) | Not needed in external-only configuration |
@@ -102,12 +102,12 @@ The MCP23017 and its interrupt/pull-up wiring are omitted. Do not buy it for thi
 | 1 | Large Piezo Alarm — 16 Tone | [SparkFun COM-13939](https://www.sparkfun.com/large-piezo-alarm-16-tone.html) | Omit Qwiic Buzzer if selected |
 | 1 | Qualified logic-level N-MOSFET or driver | [SparkFun component selection](https://www.sparkfun.com/components.html) | Exact part not yet selected; low resistance specified at gate drive ≤2.5 V |
 | 1 | 100–330 ohm gate resistor | Resistor assortment | Proposed circuit value |
-| 1 | 100 kohm gate-to-source pull-down | Resistor assortment | Off through reset/high-impedance states |
+| 1 | 6.8 kohm ±5% gate-to-source pull-down | Resistor assortment | RP2350-E9 A2 workaround; with up to 330 ohm gate series resistor, GP17-to-ground remains below 8.2 kohm |
 | 1, only if needed | Regulated 12 V boost converter | Part to be qualified | Optional louder supply; correct input range/current/enable behavior |
 
 ### General hardware
 
-10 kohm button/CS pull-ups, 150 kohm and 100 kohm sense-divider resistors, 100 nF filter/decoupling capacitors, strain relief, suitable wire, terminal blocks, enclosure/window, sound opening, antenna mounting plate and upstream fuse/protection. Do not assume hobby boards are weatherproof or protected against marine supply transients.
+10 kohm button pull-ups, 100 kohm display CS pull-up, 150 kohm and 100 kohm sense-divider resistors, 100 nF filter/decoupling capacitors, strain relief, suitable wire, terminal blocks, enclosure/window, sound opening, antenna mounting plate and upstream fuse/protection. Do not assume hobby boards are weatherproof or protected against marine supply transients.
 
 ## 5. Baseline battery-backed power
 
@@ -117,7 +117,7 @@ This retains the earlier explicit power-path architecture. It is intentionally m
 flowchart TD
     BOAT["Boat supply"] --> FUSE["Fuse / input protection"]
     FUSE --> DC["Regulated external 5 V: EXT5"]
-    DC --> CHG["bq24074 INPUT"]
+    DC --> CHG["bq24074 VBUS pad"]
     BAT["Protected 1S pack"] --- FG["MAX17048 battery sense / pass-through"]
     FG --- CHG
     CHG -->|LOAD output| PB["PowerBoost 1000 Basic"]
@@ -135,7 +135,7 @@ flowchart TD
 | Net | Connections |
 |---|---|
 | GND | Every board ground, external return and battery negative |
-| EXT5 | Regulated external 5 V to charger INPUT and sense-divider top |
+| EXT5 | Regulated external 5 V to the bq24074 VBUS pad (not its DC jack) and sense-divider top |
 | BAT | Protected pack to gauge battery pass-through/sense and charger battery input |
 | LOAD | Charger load output to PowerBoost input |
 | SYS5 | PowerBoost output to MPM3610 input, isolation-diode anode and optional sounder |
@@ -151,11 +151,17 @@ Use a rated diode and verify voltage drop and heating. Do not exceed VSYS=5.5 V 
 
 The gauge battery connectors sense the pack; logic VIN is PERIPH3V3. Follow the breakout pinout rather than confusing battery sensing with logic supply. Set charger current and temperature precautions for the selected pack.
 
+The stock bq24074 breakout's 1 kΩ RILIM is below TI's 1.1 kΩ minimum; replace it with 1.2 kΩ nominal or higher so the actual resistance stays at or above the limit (ILIM no more than 1.5 A) before use. The stock 10 kΩ termination resistor calculates to about 0.3 A termination at the 1 A charge setting; this is not a measured pack result. Verify charge completion on the selected pack before relying on it. Size EXT5 for at least 2 A continuous, providing margin above the charger's configured input current limit; the limit applies to total charger input current, including the downstream load, so system load reduces the charge current available to the battery.
+
+Do not connect the PowerBoost LBO pin directly to a Pico GPIO: its high level can be related to the charger LOAD rail (up to about 4.4 V). Leave LBO unconnected and use the MAX17048 for battery state.
+
 ### Programming and mixed-power caution
 
 Pico USB can power the controller when the external peripherals are off. The VSYS diode prevents one backfeed path, but GPIO can still back-power peripherals. The simplest bench rule is: power peripherals normally before exercising their interfaces, and disconnect their signal harness if programming Pico alone. Keep UART/SPI outputs high-impedance when destination power is absent. Do not assume the VSYS diode solves all signal backfeeding.
 
 Do not simultaneously power the GPS USB interface and its external 3V3 input without reviewing its board power paths.
+
+The boat-to-5 V converter candidates do not tolerate an unsuppressed load dump. A small TVS may clamp short transients but does not establish protection against a sustained load dump; confirm the vessel's alternator/battery protection or qualify additional series/pre-regulator protection for the actual installation. Do not treat a TVS alone as proven full load-dump protection. [R8]
 
 ## 6. Direct GPIO allocation
 
@@ -186,7 +192,7 @@ Unused pins remain available. Do not use GP23–GP25 or GP29 as spare external s
 
 ### Display wiring
 
-VCC=PERIPH3V3, GND=common. Use the signal table above for all seven signal/control pins. Add 10 kohm CS-to-PERIPH3V3 pull-up. No MISO connection is required.
+VCC=PERIPH3V3, GND=common. Use the signal table above for all seven signal/control pins. Add a 100 kohm CS-to-PERIPH3V3 pull-up; CS passes through a TXB0108, whose data I/Os require external pulls above 50 kohm. No MISO connection is required.
 
 The HAT is not a direct plug-in for a Pico: use its documented interface harness. Follow the exact E-model PWR/RST/BUSY polarity and init/sleep sequences. All signal levels here are 3.3 V. [R2]
 
@@ -204,7 +210,7 @@ flowchart LR
 
 ### GPS
 
-PERIPH3V3 → GPS 3V3. Configure UART0 with explicit GP0/GP1. SparkFun documents a default 38400 baud and UART-jumper instructions for external-controller operation; check actual revision. Use UBX or supported NMEA with valid-fix, timestamp and age checks. [R3]
+PERIPH3V3 → GPS 3V3. The NEO-F10N interface is UART-only; configure UART0 with explicit GP0/GP1 at the documented default 38400 baud, and cut both USB-to-UART jumpers to isolate the CH340 data lines. Keep USB-C unplugged/covered while installed: cutting those jumpers does not isolate its VBUS-to-3V3 power path, and the regulator's reverse-current behavior is unverified. The antenna remains powered in software standby; its estimated bias voltage is close to the antenna's 3.0 V minimum, so measure it under load. Configure UBX or supported NMEA with valid-fix, timestamp and age checks. [R3, R8]
 
 ### I2C
 
@@ -230,7 +236,7 @@ Check for carbon fiber/foil/metal roof reinforcement. Separate antenna and cable
 
 Recommended production-like starting point: Pico SDK C/C++ with CYW43/lwIP networking and supported peripheral drivers. MicroPython can accelerate prototyping, but low-power behavior must be measured. No ESP-IDF APIs apply to this RP2350 build.
 
-Use independent services for GNSS, alarm state, power/SOC, buttons, display, networking, persistence and watchdog. Apply bounded I2C/UART/display timeouts. Service wireless using the chosen SDK architecture correctly; do not assume blocking peripheral code is harmless.
+Use independent services for GNSS, alarm state, power/SOC, buttons, display, networking, persistence and watchdog. Apply bounded I2C/UART/display timeouts. The RP2350 watchdog maximum is about 16.7 seconds, shorter than the e-paper's roughly 19-second full refresh: keep watchdog and alarm processing live during BUSY waits rather than blocking on the display. Use USB stdio for debugging; UART0 GP0/GP1 belongs to GNSS. Service wireless using the chosen SDK architecture correctly; do not assume blocking peripheral code is harmless.
 
 Pico 2 W sleep/dormant/wireless behavior must be qualified for the exact SDK/core. Do not equate a Python delay with efficient hardware sleep, or promise ESP32-style connected-light-sleep numbers. Validate clock/peripheral restoration, timer wake and button wake. Initial firmware can remain awake with radio power-saving while establishing correctness.
 
@@ -238,12 +244,12 @@ Pico 2 W sleep/dormant/wireless behavior must be qualified for the exact SDK/cor
 
 | Mode | GNSS work | Wi-Fi | E-paper |
 |---|---|---|---|
-| Normal | Continuous tracking; fresh position at 1 Hz | DataHub station | Every 5 min/request |
-| Backup30 above 20% | Acquisition every 30 sec start-to-start | Off except requested session | Every 30 min/request |
-| Emergency60 at/below 20% | Every 60 sec | Off | Entry plus selected SOC crossings |
-| Verify/alarm | Continuous acquisition/tracking | Never delay sounding | Update when possible |
+| Normal | Continuous tracking; fresh position at 1 Hz | DataHub station | Every 5 min; requests rate-limited |
+| Backup30 above 20% | Acquisition every 30 sec start-to-start | Off except requested session | Every 30 min; requests rate-limited |
+| Emergency60 at/below 20% | Every 60 sec | Off | Entry, selected SOC crossings and at least once every 24 h |
+| Verify/alarm | Continuous acquisition/tracking | Never delay sounding | Update when possible, subject to the 180 sec minimum interval |
 
-Software standby is the baseline GNSS optimization, not a promise that antenna power is off. Review F10N wake/configuration behavior and actual acquisition time. The earlier assumed four-second window is a budgeting hypothesis; do not accept invalid/stale positions when it expires. [R7]
+Software standby is the baseline GNSS optimization; cyclic power-save mode is not supported. Store runtime configuration in BBR as well as RAM so it survives standby; use flash only for a deliberate one-time configuration write. Standby does not turn off antenna power. Review F10N wake/configuration behavior and actual acquisition time. The earlier assumed four-second window is a budgeting hypothesis; do not accept invalid/stale positions when it expires. [R7, R8]
 
 A suspicious economy-mode fix triggers immediate continuous verification, not three widely spaced 30/60-second samples. Failure to acquire generates a distinct fault. At 1 knot a minute is about 100 ft of travel. Long occupancy does not eliminate drag risk.
 
@@ -255,7 +261,7 @@ Store anchor reference, radius and armed state with integrity/version checking. 
 
 | Action | Behavior |
 |---|---|
-| STATUS tap | Request screen update; immediate short acknowledgement |
+| STATUS tap | Request screen update; defer the refresh until at least 180 sec after the previous one; give immediate short acknowledgement even when deferred |
 | STATUS hold ~3 sec | Limited Wi-Fi setup session |
 | ACK tap during alarm | Bounded silence, e.g. 60 sec; remain armed |
 | ACK hold when quiet | Controlled sounder test |
@@ -265,7 +271,7 @@ ACK does not clear anchor reference or persistent alarm conditions. Re-sound aft
 
 ## 9. Display and emergency policy
 
-The Spectra 6 panel refreshes in approximately 19 sec; use its exact driver, not monochrome partial-refresh timings. [R2]
+The Spectra 6 panel refreshes in approximately 19 sec; use its exact driver, not monochrome partial-refresh timings. Keep at least 180 sec between all refreshes, including alarm-state and Emergency60 entry/SOC updates, and perform at least one refresh every 24 hours in every mode. If a refresh is deferred, keep alarm processing and sounding live, retain the latest pending screen state, and give immediate feedback through the buzzer/LED. Schedule a daily refresh in Emergency60 even when no SOC threshold is crossed. [R2, R8]
 
 Direct GPIO eliminates the MCP23017 HAL adapter. Assign SPI1 GP10/GP11, software CS GP9, DC GP8, reset GP12, BUSY GP13 and PWR GP14. Keep GNSS/alarm work running while BUSY is asserted. Add timeout/fault handling and complete the documented shutdown sequence before sleep.
 
@@ -332,7 +338,7 @@ Fault-injection requirements: external-power interruption, DataHub loss, GNSS lo
 
 [R7] [F10N integration manual](https://content.u-blox.com/sites/default/files/documents/NEO-F10N_IntegrationManual_UBXDOC-963802114-12193.pdf)
 
-[R8] [Per-component datasheets and open discrepancies](data/README.md)
+[R8] [Per-component references and open discrepancies](data/README.md)
 
 ## Optional A — Large Piezo Alarm instead of Qwiic Buzzer
 
@@ -352,11 +358,11 @@ flowchart TD
     S --> GND["Common ground"]
     GPIO["Pico GP17 physical pin 22"] --> R["100–330 ohm gate resistor"]
     R --> G["MOSFET gate"]
-    G --> PD["100 kohm gate-source pull-down"]
+    G --> PD["6.8 kohm gate-source pull-down"]
     PD --> GND
 ```
 
-MOSFET pinout is device-specific. Choose specified low on-resistance at gate voltage ≤2.5 V, not merely low threshold. Ensure voltage/current/thermal margin. Sounder current must not pass through GPIO. External pull-down establishes OFF during reset; validate low-voltage and sleep-state behavior.
+MOSFET pinout is device-specific. Choose specified low on-resistance at gate voltage ≤2.5 V, not merely low threshold. Ensure voltage/current/thermal margin. Sounder current must not pass through GPIO. On RP2350 A2 silicon (E9), use a 6.8 kohm ±5% gate-to-source pull-down and keep the GP17-to-gate series resistor at 330 ohm maximum; even at worst-case resistor tolerance this keeps the external pull-down seen by GP17 below 8.2 kohm. A verified unaffected stepping is an alternative. Validate low-voltage and sleep-state behavior.
 
 ### A3. Pico SDK example
 

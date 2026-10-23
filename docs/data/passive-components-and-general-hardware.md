@@ -13,16 +13,16 @@ This file collects the passive parts called out in the build guide and the gener
 | Ref (suggested) | Value | Qty | Where | Suggested type |
 |---|---|---|---|---|
 | R_BTN1, R_BTN2 | 10 kΩ | 2 | Pull-ups GP15, GP16 → 3V3 OUT pin 36 | 1 %, 0.125 W+, metal film or 0603/0805 thick film |
-| R_CS | 10 kΩ | 1 | Display CS (GP9, pin 12) → PERIPH3V3 pull-up | as above |
+| R_CS | 100 kΩ | 1 | Display CS (GP9, pin 12) → PERIPH3V3 pull-up; TXB0108 requires >50 kΩ | as above |
 | R_TOP | 150 kΩ | 1 | EXT5 → sense node | 1 % (0.1 % optional) |
 | R_BOT | 100 kΩ | 1 | sense node → GND | 1 % |
 | C_SENSE | 100 nF | 1 | sense node → GND (optional per guide) | X7R ceramic, ≥ 10 V |
 | C_DEC | 100 nF | per IC/breakout as needed | Supply pins to GND, close to load | X7R ceramic, ≥ 10 V (≥ 25 V on 12 V rail) |
 | R_G | 100–330 Ω (220 Ω) | 1 | GP17 → MOSFET gate | 1 %/5 % |
-| R_PD | 100 kΩ per guide (10 kΩ recommended, see E9) | 1 | Gate → source | 1 %/5 % |
+| R_PD | 6.8 kΩ ±5% | 1 | Gate → source; with R_G ≤330 Ω, GP17-to-ground remains <8.2 kΩ for RP2350 A2/E9 | 5 % |
 | Optional R_F, C_F | 1 kΩ, 100 nF | 2 each | Button RC filter | see momentary-pushbuttons.md |
 
-> ⚠️ Discrepancy with build guide: on RP2350 A2 silicon, erratum E9 can hold a weakly pulled-down GPIO near 2.1–2.2 V; the guide's 100 kΩ gate pull-down may not keep the alarm MOSFET off before firmware runs. Use ≤ 8.2–10 kΩ or confirm A4 silicon [5][6]. See logic-level-n-mosfet-driver.md.
+On RP2350 A2 silicon, erratum E9 can hold a weakly pulled-down GPIO near 2.1–2.2 V. The 6.8 kΩ ±5% gate pull-down and maximum 330 Ω series resistor keep the effective external pull-down at GP17 below the documented 8.2 kΩ limit, including tolerance. A verified unaffected stepping is an alternative [5][6]. See logic-level-n-mosfet-driver.md.
 
 ### EXT5 sense divider calculations
 
@@ -77,8 +77,8 @@ Place R_BOT and C_SENSE next to the Pico pin; R_TOP can be at the EXT5 end so th
 |---|---|---|
 | EXT5 divider | 20 µA at 5.0 V | calculation |
 | Button pull-ups, pressed | 0.33 mA each | calculation |
-| CS pull-up, CS asserted low | 0.33 mA | calculation |
-| Gate pull-down while alarm on | 33 µA (100 kΩ) / 330 µA (10 kΩ) | calculation |
+| CS pull-up, CS asserted low | 33 µA (100 kΩ) | calculation |
+| Gate pull-down while alarm on | ≈0.46 mA (6.8 kΩ + 220 Ω) | calculation |
 | Decoupling capacitors | leakage only | estimate |
 
 ## 6. Programming / configuration

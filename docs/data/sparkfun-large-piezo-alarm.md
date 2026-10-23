@@ -76,7 +76,7 @@ Suggested default: tone 1 (continuous) and let firmware pulse the MOSFET, or ton
 |---|---|---|---|
 | + | ALARM_V+ | SYS5 (battery build) or EXT5 (Optional B), or boost VOUT (A4) | Fuse or polyfuse recommended at source (proposal) |
 | − | ALARM_SW | Q1 drain | Q1 source to GND |
-| — | GATE | GP17 (pin 22) via 100–330 Ω | 100 kΩ gate-to-source pull-down per guide; see MOSFET file for RP2350-E9 note [3] |
+| — | GATE | GP17 (pin 22) via 100–330 Ω | 6.8 kΩ ±5% gate-to-source pull-down keeps GP17-to-ground below 8.2 kΩ for RP2350 A2/E9; see MOSFET file [3] |
 
 ```mermaid
 flowchart LR
