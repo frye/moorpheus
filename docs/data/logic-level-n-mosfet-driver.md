@@ -56,7 +56,7 @@ flowchart LR
   S --> G0["GND"]
   P17["GP17 pin 22"] --> RG["Rg 220 ohm"]
   RG --> GT["Q1 gate pin 1"]
-  GT -->   RPD["Rpd 8.2k"]
+  GT --> RPD["Rpd 6.8k ±5%"]
   RPD --> G0
   DOPT["Optional D1 or TVS across alarm"] -.-> ALP
 ```
