@@ -30,7 +30,7 @@ There are five concepts in total, each drawn for the 600 × 400 e-paper panel an
 - [`docs/build-steps.md`](docs/build-steps.md) is the step-by-step path through the build. Start with Step 1, which brings up the Pico, toolchain and display before adding other hardware. The page links to the full [build guide](docs/pico_2_w_anchor_alarm_build_guide_v2.md) and the detailed [Step 1 display instructions](docs/display-bring-up.md).
 - [`docs/pico_2_w_anchor_alarm_build_guide_v2.md`](docs/pico_2_w_anchor_alarm_build_guide_v2.md) is the full design reference for parts, power, pin assignments, firmware, display policy and optional variants.
 - [`examples/display-hello/`](examples/display-hello/) contains the standalone Step 1 sample.
-- [`docs/data/`](docs/data/) has one reference file per component: specs, wiring, power notes and sources. It's mostly there so that AI coding agents can look things up without redoing the research each time, but it's readable enough for people too. Its [README](docs/data/README.md) also lists places where the research disagrees with the build guide and still needs sorting out.
+- [`docs/data/`](docs/data/) has one reference file per component: specs, wiring, power notes and sources. It's mostly there so that AI coding agents can look things up without redoing the research each time, but it's readable enough for people too. Its [README](docs/data/README.md) tracks design checks and measurements that remain open.
 - [`layouts/`](layouts/) is the static HTML mockup gallery, with screenshots in [`layouts/screenshots/`](layouts/screenshots/).
 
 ## Status
@@ -39,7 +39,7 @@ There are five concepts in total, each drawn for the 600 × 400 e-paper panel an
 - [x] Component reference notes collected
 - [x] Display layout concepts mocked up
 - [x] Step 1 display-only sample builds for Pico 2 W
-- [ ] Resolve the open discrepancies in [`docs/data/README.md`](docs/data/README.md)
+- [ ] Complete the open design checks in [`docs/data/README.md`](docs/data/README.md)
 - [ ] Breadboard prototype
 - [ ] Step 1 on-device acceptance
 - [ ] Anchor-alarm firmware

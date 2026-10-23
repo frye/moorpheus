@@ -66,7 +66,7 @@ Physical pins are numbered on the Pico 2 W 40-pin edge, not on a Raspberry Pi HA
 | 9 | GP6 | SPI0 SCK / UART1 CTS / I2C1 SDA / PWM3 A | Spare |
 | 10 | GP7 | SPI0 TX / UART1 RTS / I2C1 SCL / PWM3 B | Spare |
 | **11** | **GP8** | SPI1 RX / UART1 TX / I2C0 SDA / PWM4 A | **EPD DC (SIO output)** |
-| **12** | **GP9** | SPI1 CSn / UART1 RX / I2C0 SCL / PWM4 B | **EPD CS (SIO output, 10 kΩ pull-up to PERIPH3V3)** |
+| **12** | **GP9** | SPI1 CSn / UART1 RX / I2C0 SCL / PWM4 B | **EPD CS (SIO output, 100 kΩ pull-up to PERIPH3V3)** |
 | 13 | GND | — | Common ground |
 | **14** | **GP10** | **SPI1 SCK** / UART1 CTS / I2C1 SDA / PWM5 A | **EPD CLK** |
 | **15** | **GP11** | **SPI1 TX (MOSI)** / UART1 RTS / I2C1 SCL / PWM5 B | **EPD DIN** |
@@ -118,13 +118,13 @@ Physical pins are numbered on the Pico 2 W 40-pin edge, not on a Raspberry Pi HA
 | 2 | GP1 UART0 RX | GPS TX | FT pin: tolerates 3.3 V from a powered GPS while the Pico is unpowered [1] |
 | 6 / 7 | GP4 / GP5 I2C0 | Qwiic Buzzer 0x34 (baseline), MAX17048 0x36 (battery build) | 100 kHz start; pull-ups to 3.3 V only [15] |
 | 11 | GP8 | EPD DC | — |
-| 12 | GP9 | EPD CS | 10 kΩ pull-up to PERIPH3V3 [15] |
+| 12 | GP9 | EPD CS | 100 kΩ pull-up to PERIPH3V3 [15] |
 | 14 / 15 | GP10 / GP11 SPI1 | EPD CLK / DIN | No MISO [15] |
 | 16 | GP12 | EPD RST | Polarity and timing per the Waveshare E-model manual |
 | 17 | GP13 | EPD BUSY | Input; see the E9 note in §7 |
 | 19 | GP14 | EPD PWR | Polarity per the Waveshare E-model manual |
 | 20 / 21 | GP15 / GP16 | STATUS / ACK buttons to GND | 10 kΩ pull-ups to Pico 3V3 OUT [15] |
-| 22 | GP17 | Optional A MOSFET gate | 100–330 Ω series, 100 kΩ gate-source pull-down [15] |
+| 22 | GP17 | Optional A MOSFET gate | 100–330 Ω series, 6.8 kΩ ±5% gate-source pull-down keeps GP17-to-ground below 8.2 kΩ for RP2350 A2/E9 [15] |
 | 24 | GP18 | Reserved | Leave unconfigured in baseline |
 | 31 | GP26 / ADC0 | EXT5 → 150 kΩ → node → 100 kΩ → GND, optional 100 nF | 5.0 V EXT5 gives 2.0 V at the node |
 | 36 | 3V3 OUT | Button pull-ups | Separate from PERIPH3V3 |
@@ -382,7 +382,7 @@ The 4 MHz SPI clock and 8000 ms watchdog timeout are project starting values, no
 7. **ADC pin GP26 when Pico unpowered:** GP26–GP29 conduct through a diode into IOVDD above about 0.3 V over IOVDD [1]. If EXT5 is present while VSYS is absent, the divider back-feeds the 3.3 V rail through 150 kΩ. With EXT5 = 5 V and IOVDD = 0 V, that is roughly 30 µA (calculated). The current is small, but avoid this state during bench work [15].
 8. **Signal back-feeding:** GP0–GP25 are fault-tolerant (safe up to 3.3 V when unpowered) [1]. When the Pico is on USB with PERIPH3V3 off, Pico outputs (GP0, GP8–GP12, GP14) can still power peripherals through their I/O protection diodes. Keep outputs low or high-impedance until PERIPH3V3 is confirmed, or disconnect the harness [15].
 9. **RP2350-E9 (A2 stepping):** a Bank 0 input in the undefined region can source about 120 µA and latch near 2.2 V, so internal pull-downs fail [2]. Fixed in A3 and later [2]. Effects here: the buttons use external pull-ups and are unaffected. **GP13 BUSY** can float to ~2.2 V when the display is unpowered, so ignore BUSY unless EPD PWR is on. The datasheet workarounds are an external pull ≤ 8.2 kΩ or clearing the input enable [2]. Check the stepping with `rp2350_chip_version()`.
-10. **GP17 alarm gate:** GPIO resets to an input. The external 100 kΩ pull-down keeps the MOSFET off through reset and BOOTSEL [15]. Never route sounder current through a GPIO. The sum of sourced or sunk GPIO current must stay ≤ 100 mA [2].
+10. **GP17 alarm gate:** GPIO resets to an input. On RP2350 A2/E9, keep the complete external resistance from GP17 to ground below 8.2 kΩ; a 6.8 kΩ ±5% gate-source pull-down plus up to 330 Ω series resistance meets that limit. A verified unaffected stepping is an alternative [2][15]. Never route sounder current through a GPIO. The sum of sourced or sunk GPIO current must stay ≤ 100 mA [2].
 11. **Antenna keep-out and enclosure:** keep the 14 × 9 mm antenna end clear, and keep the board out of metal boxes [1]. Mount the Pico at the board edge, away from the GNSS antenna and switching converters [15].
 12. **Environment:** rated −20 °C to +70 °C including self-heating [1]. MTBF drops from 182 000 h (ground benign) to 11 000 h (ground mobile) [1]. A boat is closer to "mobile", so provide a condensation-protected enclosure, strain relief and an independent anchor watch. No conformal coating or IP rating is provided.
 13. **ADC accuracy:** ADC_AVDD is the filtered SMPS 3.3 V, with an inherent ~30 mV offset [1]. Average samples, calibrate against a meter, and apply hysteresis and time-debounce to the EXT5 present/absent decision [15].

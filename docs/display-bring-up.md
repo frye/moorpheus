@@ -68,8 +68,8 @@ with power removed, not by colour. [2]
 | 9 | PWR | GP14 | 19 |
 
 Add **100 kohm between CS and Pico 3V3 OUT**. This follows the display reference's
-TXB0108 guidance, overriding the older 10 kohm CS recommendation in the main
-guide. All signals and VCC in this setup are 3.3 V; **do not use VBUS/pin 40
+TXB0108 guidance and the main guide's CS pull-up value. All signals and VCC in
+this setup are 3.3 V; **do not use VBUS/pin 40
 for display VCC**. No MISO connection is needed. [1][2]
 
 Before applying power:
@@ -241,8 +241,8 @@ choices. No application heap allocation or watchdog is used in this bench sample
    [C driver](https://github.com/waveshareteam/e-Paper/blob/master/E-paper_Separate_Program/4inch_e-Paper_E/RaspberryPi_JetsonNano/c/lib/e-Paper/EPD_4in0e.c).
    The adapted sequence retains its [vendor license](../examples/display-hello/WAVESHARE-LICENSE.txt).
 3. [Main build guide](pico_2_w_anchor_alarm_build_guide_v2.md), sections 5 and 6;
-   [open discrepancies](data/README.md#open-discrepancies-with-the-build-guide)
-   override older values.
+   [open design checks](data/README.md#open-discrepancies-with-the-build-guide)
+   track remaining unverified or installation-dependent details.
 
 [4]: https://www.raspberrypi.com/documentation/microcontrollers/c_sdk.html
 [5]: https://github.com/raspberrypi/pico-vscode

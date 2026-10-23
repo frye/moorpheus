@@ -142,14 +142,14 @@ the operator must observe that interval between runs [1].
 
 The 40-pin header stays unconnected. On this board, VCC_INT is tied to the 40-pin "5 V" pins 2/4, so those pins carry PERIPH3V3 whenever P2-1 is powered. Insulate the header [4].
 
-> ⚠️ **Discrepancy with build guide (CS pull-up value).** The guide calls for a **10 kΩ** CS-to-PERIPH3V3 pull-up [12]. CS reaches the panel through the board's TXB0108. TI requires any external pull-up or pull-down on TXB0108 data I/Os to be **> 50 kΩ**, so it does not contend with the translator's weak output drivers [10]. The Pico is the only driver of CS, so 10 kΩ will probably work. To stay inside TI's guidance, consider **100 kΩ**. This is a design decision for the guide owner, so the guide is not changed here.
+The build guide specifies a **100 kΩ** CS-to-PERIPH3V3 pull-up [12]. CS reaches the panel through the board's TXB0108. TI requires external pull-up or pull-down resistors on TXB0108 data I/Os to be **> 50 kΩ** [10].
 
 > ⚠️ **Discrepancy with build guide (VCC level).** The guide feeds VCC from PERIPH3V3 (3.3 V), and Waveshare permits 3.3 V or 5 V [1]. However, the on-board RT9193-33 LDO then runs in dropout, so the panel VDD (3V3_OUT) sits slightly below PERIPH3V3. Its exact value is unverified. It must stay ≥ 2.4 V (panel min) [3], and Waveshare recommends ≥ 2.5 V [1]. This also keeps the TXB0108 rule VCCA ≤ VCCB satisfied [10]. Measure it at bring-up.
 
 ```mermaid
 flowchart LR
     BUCK["MPM3610 buck: PERIPH3V3"] -->|"VCC P2-1"| HAT["4in e-Paper HAT+ E"]
-    BUCK -->|"pull-up, value per note"| CSN["CS net"]
+    BUCK -->|"100 kΩ pull-up"| CSN["CS net"]
     subgraph PICO["Pico 2 W"]
         GP10["GP10 SPI1 SCK pin 14"]
         GP11["GP11 SPI1 TX pin 15"]
@@ -448,8 +448,8 @@ The row callback packs pixels as `row[x/2] = (left << 4) | right`, matching `get
   - With PWR low, the TXB isolates both sides (outputs high-Z), and Ioff on each pin is ≤ ±2 µA [10].
 - **Refresh rate limits:**
   - Waveshare recommends **≥ 180 s** between refreshes and **at least one refresh every 24 h** [1].
-  - Normal mode updates every 5 min, which complies. A STATUS tap could request a refresh within 180 s of the last one. Defer it until 180 s have passed and give feedback through the buzzer or LED instead [12].
-  - Emergency60 updates only on entry and at selected SOC crossings, so it may go longer than 24 h without a refresh. Add a daily refresh, or a white clear before long storage [1].
+  - Normal mode updates every 5 min, which complies. Defer a STATUS refresh request until 180 s have passed since the previous refresh and give feedback through the buzzer or LED instead [12].
+  - Apply the 180 s minimum to alarm-state and Emergency60 entry/SOC updates as well; keep the latest pending state and schedule a daily refresh when no SOC threshold is crossed [1][12].
 - **No partial refresh:** use full refresh only. Each update takes about 19 s with flicker [1].
 - **Temperature:**
   - The operating range is 0–50 °C [3]. Below that, refresh quality is not specified. Waveshare reports a colour cast at low temperature and suggests 6 h at 25 °C before refreshing [1].
