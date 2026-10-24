@@ -16,6 +16,13 @@ Read the [Step 1 display bring-up instructions](display-bring-up.md) for the
 complete wiring, setup, build, flash and troubleshooting procedure. The example
 source is in [`examples/display-hello/`](../examples/display-hello/).
 
+After the Hello acceptance gate passes, the same page has a separate
+[five-layout demo section](display-bring-up.md#then-run-the-five-layout-demo).
+Build and flash [`examples/display-layouts/`](../examples/display-layouts/) to
+cycle the five normal-state concepts using fixed simulated data. It waits
+180 seconds after each completed update before starting the next and stops on
+display faults. This is a different application, not a live alarm.
+
 ## Later phases
 
 Once Step 1 has passed on the bench, continue through the

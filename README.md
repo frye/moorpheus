@@ -5,6 +5,12 @@ An anchor-drag alarm for a boat, built around a Raspberry Pi Pico 2 W, a GNSS re
 > [!NOTE]
 > **Start with the display bring-up, not the full alarm.** There is a display-only C/Pico SDK sample that builds for the Pico 2 W. The anchor alarm is still design and planning work. Nothing has been assembled or tested on hardware.
 
+Step 1 starts with **Hello Moorpheus** to check the wiring. A separate
+[layout demo](docs/display-bring-up.md#then-run-the-five-layout-demo) then cycles
+the five normal-state screens with fixed simulated data, waiting 180 seconds
+after each completed display update. The guide covers building and flashing
+each application; neither is an anchor alarm.
+
 ## The idea
 
 You drop anchor, press a button, and the device remembers where the boat is. It keeps checking your GPS position, and if the boat drifts outside the radius you set, it sounds an alarm. The e-paper screen shows the distance and the state at a glance and uses almost no power between updates. A phone view over the boat's local Wi-Fi (PredictWind DataHub) is planned too.
@@ -30,6 +36,7 @@ There are five concepts in total, each drawn for the 600 × 400 e-paper panel an
 - [`docs/build-steps.md`](docs/build-steps.md) is the step-by-step path through the build. Start with Step 1, which brings up the Pico, toolchain and display before adding other hardware. The page links to the full [build guide](docs/pico_2_w_anchor_alarm_build_guide_v2.md) and the detailed [Step 1 display instructions](docs/display-bring-up.md).
 - [`docs/pico_2_w_anchor_alarm_build_guide_v2.md`](docs/pico_2_w_anchor_alarm_build_guide_v2.md) is the full design reference for parts, power, pin assignments, firmware, display policy and optional variants.
 - [`examples/display-hello/`](examples/display-hello/) contains the standalone Step 1 sample.
+- [`examples/display-layouts/`](examples/display-layouts/) contains the separate five-screen demo and its pre-rendered images.
 - [`docs/data/`](docs/data/) has one reference file per component: specs, wiring, power notes and sources. It's mostly there so that AI coding agents can look things up without redoing the research each time, but it's readable enough for people too. Its [README](docs/data/README.md) tracks design checks and measurements that remain open.
 - [`layouts/`](layouts/) is the static HTML mockup gallery, with screenshots in [`layouts/screenshots/`](layouts/screenshots/).
 
@@ -39,6 +46,7 @@ There are five concepts in total, each drawn for the 600 × 400 e-paper panel an
 - [x] Component reference notes collected
 - [x] Display layout concepts mocked up
 - [x] Step 1 display-only sample builds for Pico 2 W
+- [x] Separate five-layout simulation builds for Pico 2 W
 - [ ] Complete the open design checks in [`docs/data/README.md`](docs/data/README.md)
 - [ ] Breadboard prototype
 - [ ] Step 1 on-device acceptance

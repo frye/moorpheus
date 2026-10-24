@@ -315,6 +315,7 @@ PERIPH3V3; disconnect that bench supply lead before connecting the external rail
 
 1. Verify pin orientation, models/revisions and polarity for the Step 1 bench wiring.
 2. Complete Step 1: build for Pico 2 W, flash over USB, and confirm USB diagnostics, panel voltage, visible text and display shutdown.
+   After that Hello acceptance gate, the same Step 1 page provides a separate [five-layout simulation](display-bring-up.md#then-run-the-five-layout-demo) using fixed demo data; it waits at least 180 sec after each completed update before starting the next. This bench demo does not change the alarm display policy in §9.
 3. Build protected power distribution and confirm rails under load.
 4. Add gauge and baseline buzzer; scan I2C addresses.
 5. Add buttons and test startup/wake/ACK behavior.

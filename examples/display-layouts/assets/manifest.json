@@ -1,0 +1,32 @@
+{
+  "rotation": "clockwise",
+  "width": 400,
+  "height": 600,
+  "frames": [
+    {
+      "id": "watch",
+      "bytes": 120000,
+      "sha256": "9e077062ac59337768a924d041d26261649e7f4b4cde82813dfc3c3913acb573"
+    },
+    {
+      "id": "big",
+      "bytes": 120000,
+      "sha256": "ae0172c3e2ffbdbfe5751079ded40d40dc8df1372ae772a0e44437b8dc8b2446"
+    },
+    {
+      "id": "grid",
+      "bytes": 120000,
+      "sha256": "84f499ba57d8949c7a40b98145cb5bdd1e24fd2d39735f8e18a3bd5dc4b32c7f"
+    },
+    {
+      "id": "swing",
+      "bytes": 120000,
+      "sha256": "b7eac3233cdd93fa3166ebf1d4f2e79df03df78470214cf8c59f969e549f5ba9"
+    },
+    {
+      "id": "ledger",
+      "bytes": 120000,
+      "sha256": "aaccef19b71a1bc04ad04b992f1fdc761b5bba2ac2283056755a469b5a0dbee0"
+    }
+  ]
+}

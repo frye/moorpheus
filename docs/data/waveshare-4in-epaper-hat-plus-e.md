@@ -125,6 +125,13 @@ The sample performs one refresh of black text on white, then deep-sleeps and
 powers down the display. Resetting it can violate the 180 s minimum interval;
 the operator must observe that interval between runs [1].
 
+After that wiring check, Step 1 also provides a separate
+[five-layout simulation](../display-bring-up.md#then-run-the-five-layout-demo)
+in `examples/display-layouts/`. It reuses the same driver and wiring, with a
+180 s powered-down wait after each completed update before starting the next.
+All readings are fixed demo data; neither sample has run on hardware. Observe
+the same minimum interval when switching applications or resetting [1].
+
 ### Full alarm wiring
 
 | HAT P2 pin | Signal | Pico 2 W | Pico pin | Net / note |
