@@ -37,5 +37,9 @@ Once Step 1 has passed on the bench, continue through the
 7. Add standby scheduling and measure power consumption.
 8. Exercise low-battery behavior and the fault-injection checks in the full guide.
 
+The planned ESP32-S3 touch-screen edition has its own phased bring-up in
+[§12 of its guide](esp32_s3_touch_lcd_4_anchor_alarm_build_guide.md#12-assembly-and-acceptance).
+It is documentation only, with no firmware yet.
+
 These phases are planned, not completed or hardware-tested. The design is a
 prototype, not a certified marine safety system.

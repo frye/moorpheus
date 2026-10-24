@@ -1,6 +1,6 @@
 # Protected 1S Li-ion / LiPo battery pack — datasheet & integration notes
 
-> Part: generic protected single-cell (1S) Li-ion/LiPo pack from Adafruit category 574 (e.g. products 2011, 354, 353, 5035) · Role in project: backup energy store on net BAT · Configuration: battery-backed only
+> Part: generic protected single-cell (1S) Li-ion/LiPo pack from Adafruit category 574 (e.g. products 2011, 354, 353, 5035) · Role in project: backup energy store on net BAT (Pico edition), or on the PH2.0 battery connector of the ESP32-S3 board (§10) · Configuration: battery-backed only, and the ESP32 touch edition
 
 ## 1. Overview
 
@@ -132,3 +132,47 @@ No direct configuration. Related firmware/hardware settings:
 6. Adafruit Learning System, MAX17048 guide pinouts — https://learn.adafruit.com/adafruit-max17048-lipoly-liion-fuel-gauge-and-battery-monitor/pinouts
 7. Analog Devices, MAX17048/MAX17049 datasheet — https://www.analog.com/media/en/technical-documentation/data-sheets/max17048-max17049.pdf
 8. Adafruit Learning System, BQ24074 guide pinouts/FAQ — https://learn.adafruit.com/adafruit-bq24074-universal-usb-dc-solar-charger-breakout/pinouts
+9. ETA Solutions, ETA6098 battery charger datasheet V1.1 (fast charge 2 A at R_ISET 82 kΩ, 1.2 A at 150 kΩ; 4.2 V EOC; 130 mA termination; 85 °C thermal regulation) — https://www.eta-semi.com/wp-content/uploads/2022/03/ETA6098_V1.1.pdf
+10. Waveshare, ESP32-S3-Touch-LCD-4 V4.0 and V3.0 schematics (PH2.0 battery, charger, power latch, SW6106 BSET) — https://files.waveshare.com/wiki/ESP32-S3-Touch-LCD-4/ESP32-S3-Touch-LCD-4%20V4.0.pdf ; https://files.waveshare.com/wiki/ESP32-S3-Touch-LCD-4/ESP32-S3-Touch-LCD-4_V3.0.pdf ; project note [waveshare-esp32-s3-touch-lcd-4.md](waveshare-esp32-s3-touch-lcd-4.md)
+11. Zhuhai iSmartWare, SW6106 datasheet DS008_v2.2 (charge current up to 2.5 A at 5 V input; 4.2/4.3/4.35/4.4 V targets) — https://files.waveshare.com/wiki/common/SW6106%20Datasheet.pdf
+12. Waveshare Wiki, "ESP32-S3-Touch-LCD-4" (battery connector, PWR key, FAQ) — https://www.waveshare.com/wiki/ESP32-S3-Touch-LCD-4
+13. Moorpheus ESP32 touch edition build guide, `docs/esp32_s3_touch_lcd_4_anchor_alarm_build_guide.md` (§5, §11)
+
+## 10. ESP32-S3 touch edition
+
+In the planned [ESP32-S3 touch edition](../esp32_s3_touch_lcd_4_anchor_alarm_build_guide.md) [13], the backup pack plugs straight into the PH2.0 battery connector on the Waveshare board [12]. The board has its own charger and battery boost, so the bq24074, MAX17048 and PowerBoost of the Pico edition are not used. Nothing here has been built or tested.
+
+### 10.1 What the board does to the pack
+
+| Item | V4 (ETA6098 charger) | V1–V3 (SW6106 power-bank IC) | Source |
+|---|---|---|---|
+| Charge current | 2 A fast charge (R_ISET 82 kΩ). 200 mA precondition | Up to 2.5 A at 5 V input. Fitted setting **unverified** | [9][10][11] |
+| Charge voltage | 4.2 V, internal preset | 4.2 V with BSET not fitted. R15 marked "NC/62K", and 62 kΩ gives 4.35 V — **check the board** | [9][10] |
+| Termination | 130 mA, recharge 160 mV below EOC | Per datasheet | [9][11] |
+| Thermistor (NTC) input | None | Not used on the schematic — **inferred** | [10] |
+| Charger thermal regulation | 85 °C die temperature | — | [9] |
+| Charge source | USB0_5V, which is fed from VIN or USB-C. Boat power charges the pack | VIN or USB | [10] |
+| Battery gauge | Pack voltage on the CH32 ADC through a ÷3 divider. Voltage only, no coulomb counting | SW6106 internal | [10] |
+| Discharge path | Boost to 5 V, only while the Q4 latch is on (PWR key or SYS_EN) | SW6106 boost | [10] |
+
+### 10.2 Pack requirements
+
+- **Protected 1S Li-ion/LiPo, 4.2 V chemistry**, with a PH2.0 2-pin plug [12]. Never fit a 4.35 V or LiFePO4 cell without checking the charger setting.
+- **Polarity.** PH2.0 and JST-PH leads from different vendors come in both polarities [4]. Meter the plug against the board silkscreen before connecting.
+- **Charge-current rating.** On V4 the pack must accept 2 A [9]. With the ≤ 0.5 C guidance in §2 [4], that means a cell of **at least 4 Ah**. Adafruit's 4400 mAh pack is limited to 1 A charge [4], so it does **not** meet this as stated. Options:
+  1. Choose a cell whose datasheet allows ≥ 2 A charge (for example a 1S2P 18650 pack of ≥ 5 Ah with a PCM rated above 2 A). This is an example to evaluate, not a selected part.
+  2. Rework R_ISET to a higher value. The datasheet gives 1.2 A at 150 kΩ [9]. This is a board modification and is **untested**.
+  3. Put a small series resistance or current-limited supply in the charge path. Not recommended, because the same path feeds the boost.
+- **Connector current.** A PH2.0 connector is a small connector carrying up to 2 A of charge current plus the boost input current on battery. Its current rating is not published on the Waveshare pages — **unverified**. Check the connector and lead temperature during the first full-current charge.
+- **No thermistor.** The board cannot stop charging on pack temperature. Mount the pack away from the board's regulators, keep it below deck, and follow §7's marine safety notes [5].
+
+### 10.3 Sizing
+
+Use the same formulas as §5, but with the battery-input power of the ESP32 board measured at the PH2.0 connector with VIN removed. The board power is not published, and the backlight is likely to dominate. **All values must be measured.** See build guide §11 [13].
+
+### 10.4 Bring-up additions
+
+1. Before the first connection, meter the pack polarity and voltage. On V1–V3, read R15 to confirm the BSET value.
+2. Charge from a partly discharged state (about 3.6 V). Measure the charge current at the connector, the pack and connector temperature every 10 minutes, and the VIN current.
+3. With SYS_EN asserted, remove VIN. Measure the battery current at full and night backlight levels, with Wi-Fi on and off.
+4. Discharge to the firmware shutdown point. Record the Wh delivered and the CH32 ADC reading against a meter.
