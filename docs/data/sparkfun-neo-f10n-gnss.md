@@ -1,6 +1,6 @@
 # SparkFun GNSS L1/L5 Breakout – NEO-F10N, SMA — datasheet & integration notes
 
-> Part: SparkFun GPS-24114 (u-blox NEO-F10N-00B, firmware SPG 6.00) · Role in project: position source for the anchor watch, UART0 to the Pico 2 W · Configuration: Both
+> Part: SparkFun GPS-24114 (u-blox NEO-F10N-00B, firmware SPG 6.00) · Role in project: position source for the anchor watch, UART0 to the Pico 2 W, or through an RS485 converter to the ESP32-S3 board (§10) · Configuration: Both Pico configurations and the ESP32 touch edition
 
 ## 1. Overview
 
@@ -350,3 +350,76 @@ Usage notes:
 7. u-blox, u-blox F10 SPG 6.00 Interface description, UBX-23002975 R01, https://docs.sparkfun.com/SparkFun_u-blox_NEO-F10N/assets/component_documentation/u-blox-F10-SPG-6.00_InterfaceDescription_UBX-23002975.pdf
 8. Moorpheus build guide, `docs/pico_2_w_anchor_alarm_build_guide_v2.md` (§5, §6 GPS, §7, §8)
 9. u-blox, ANN-MB5 Data sheet, UBX-22038811 R03, https://cdn.sparkfun.com/assets/0/b/a/5/2/ANN-MB5_Datasheet.pdf
+10. Waveshare, ESP32-S3-Touch-LCD-4 V4.0 schematic (terminal H4, I2C_VCC selection, RS485 SP3485, I²C level shifter) — https://files.waveshare.com/wiki/ESP32-S3-Touch-LCD-4/ESP32-S3-Touch-LCD-4%20V4.0.pdf ; project note [waveshare-esp32-s3-touch-lcd-4.md](waveshare-esp32-s3-touch-lcd-4.md)
+11. Waveshare Wiki, "TTL TO RS485 (B)" — https://www.waveshare.com/wiki/TTL_TO_RS485_(B) ; project note [waveshare-ttl-to-rs485-b.md](waveshare-ttl-to-rs485-b.md)
+12. NXP, UM10204 "I2C-bus specification and user manual" (400 pF bus capacitance limit) — https://www.nxp.com/docs/en/user-guide/UM10204.pdf
+13. Actisense, "The NMEA 0183 Information sheet" (RS-422 levels, 4800 baud, opto-isolated listeners) — https://actisense.com/wp-content/uploads/2020/01/NMEA-0183-Information-sheet-issue-4-1-1.pdf
+14. MaxLinear, SP3485 datasheet (receiver common-mode range −7 to +12 V) — https://www.maxlinear.com/ds/sp3485.pdf
+15. Furuno, "NMEA 2000 Installation Guide" (network power 9–16 V, isolated from other circuits) — https://www.furunousa.com/-/media/sites/furuno/document_library/technical_info/interfacing_and_installation/interfacing_and_installation/nmea2000_installation_guide.pdf
+16. NXP, SC16IS740/750/760 single UART with I²C-bus/SPI interface datasheet — https://www.nxp.com/docs/en/data-sheet/SC16IS740_750_760.pdf
+17. SparkFun, "SparkFun GNSS Receiver Breakout - MAX-M10S (Qwiic)" — https://www.sparkfun.com/sparkfun-gnss-receiver-breakout-max-m10s-qwiic.html
+18. Moorpheus ESP32 touch edition build guide, `docs/esp32_s3_touch_lcd_4_anchor_alarm_build_guide.md` (§5, §6, §7)
+
+## 10. ESP32-S3 touch edition wiring
+
+This section covers the planned [ESP32-S3 touch edition](../esp32_s3_touch_lcd_4_anchor_alarm_build_guide.md) [18]. The receiver, antenna and breakout are the same as in the Pico edition. Only the connection to the controller changes. Nothing here has been built or tested.
+
+### 10.1 The constraint
+
+- The NEO-F10N has **one UART and no I²C** (§1) [2][5]. It cannot go on the board's Qwiic-style I²C terminal, and no address 0x42 applies.
+- The Waveshare ESP32-S3-Touch-LCD-4 uses almost every GPIO for its RGB panel. Its only external interfaces are on a 10-pin screw terminal: VIN/GND, RS485 A/B, CAN L/H and an I²C pair with a VCC pin [10].
+- The board's only external UART is the half-duplex RS485 path (ESP32 RX = GPIO43, TX = GPIO44) [10].
+
+### 10.2 Options compared
+
+| Option | How | For | Against | Verdict |
+|---|---|---|---|---|
+| **A. TTL-to-RS485 converter (recommended)** | NEO TX/RX → TTL-to-RS485 converter beside the breakout → terminal A/B → board SP3485 → GPIO43/44 | Uses the board's real UART. GNSS data stays off the shared I²C bus. Same receiver and antenna as the Pico edition | Extra part (≈ 54–85 mA, size). Half-duplex, so writes must fit into gaps | **Baseline** |
+| B. I²C-to-UART bridge (SC16IS7xx) on terminal I²C | Bridge at 0x48–0x57 [16] with its UART to the NEO | No RS485 parts | GNSS traffic shares the I²C bus with touch, RTC and the CH32 helper that drives the buzzer and the power latch [10]. A cable fault silences the alarm | Rejected |
+| C. Different receiver with native I²C (u-blox M10 Qwiic, 0x42) | e.g. SparkFun MAX-M10S Qwiic [17] on terminal I²C | Simple wiring. 0x42 does not clash with 0x5D/0x14, 0x51, 0x24, 0x20 or 0x3C [10] | Same shared-bus risk as B. L1 only. Not evaluated in detail | Fallback only |
+| D. Boat NMEA 0183 into RS485 | Existing chartplotter/GPS talker (RS-422, 4800 baud) into terminal A/B | No GNSS hardware | NMEA 0183 listeners should be opto-isolated [13]. The board's SP3485 is not isolated and its common-mode range is −7 to +12 V [14]. Depends on another instrument being powered | Future option, with an opto-isolated input |
+| E. NMEA 2000 via CAN | Terminal CAN L/H to the backbone | Standard boat network | NMEA 2000 needs network power 9–16 V isolated from other circuits [15]. The TJA1051 here is not isolated, and GPIO0 (CAN RX) is a boot strap [10] | Future option, needs an isolated interface |
+| F. Re-use CAN pins (GPIO0/6) as a UART | Remove or bypass the TJA1051 | Second UART | Board modification. GPIO0 boot strap | Rejected |
+
+### 10.3 Recommended wiring (option A)
+
+| From | To | Notes |
+|---|---|---|
+| Board terminal 7 I2C_VCC (3V3, default 0 Ω link) | Breakout 3V3 (J2-8) and converter TTL VCC | Do not move the link to 5V. The NEO VCC absolute maximum is 3.6 V [5] |
+| Board terminal 8 GND | Breakout GND (J2-9), converter TTL GND | |
+| Breakout TX (J2-6) | Converter TTL input | 38 400 8N1 |
+| Breakout RX (J2-5) | Converter TTL output | Only used for occasional UBX writes |
+| Converter A / B | Board terminal 3 A / 4 B | Short twisted pair |
+| Breakout 5V, PPS, EVENT, SAFE, RST | — | Leave open, as in §4 |
+| Breakout USB-TX / USB-RX jumpers | Cut | As in §6.1, after bench configuration |
+
+Placement: the breakout and converter go next to the board, in the same enclosure. The 3 m ANN-MB5 cable runs to the antenna as in the Pico edition [9][18].
+
+### 10.4 Power from the terminal
+
+- I2C_VCC is the board's 3V3 rail through solder pads H3 (0 Ω to 3V3 by default) [10]. The 3V3 rail is an MP1658 buck marked "3A MAX" [10].
+- Estimated load: the GNSS plus antenna draws ≈ 38–45 mA (§5). The converter draws ≈ 54 mA at 5 V according to Waveshare, and an unknown amount at 3.3 V [11]. Total ≈ 95–130 mA — **estimate, measure**.
+- The NEO VCC ramp must be 25–35 000 µs/V [5]. The board's 3V3 rail ramp has not been measured — **unverified**. Check it with a scope at power-up.
+- The ANN-MB5 needs ≥ 3.0 V at the antenna [9]. With 3.3 V in and VCC_RF ≈ VCC − 0.1 V [5], there is little margin. Measure the voltage at the SMA under load.
+- The GNSS cannot be power-cycled by firmware. No board GPIO is free for a load switch. Only software standby is available, and it leaves the antenna powered (§5).
+
+### 10.5 If the I²C terminal is used anyway (options B or C)
+
+- Addresses already on the bus: GT911 0x5D or 0x14, PCF85063 0x51, CH32V003 0x24 (V4), TCA9554 0x20 and SW6106 0x3C (V1–V3) [10].
+- The terminal side of the NDC7002N level shifter has 4.7 kΩ pull-ups to I2C_VCC, and the board side has 4.7 kΩ to 3V3 [10]. Remove or disable pull-ups on any Qwiic breakout so the parallel value does not get too low.
+- The bus runs at 400 kHz in Waveshare's code [10]. The I²C limit is 400 pF total bus capacitance [12]. Keep the external cable short (well under 1 m).
+- A fault on this cable can hold the bus low and take touch, the buzzer enable and the battery power latch with it [10]. This is why options B and C are not the baseline.
+
+### 10.6 Configuration
+
+- Configure on the bench before installation, over the breakout USB-C, **before** cutting USB-TX/USB-RX (§6.1). Use the same UBX key set as the Pico edition (§6.2). Save to RAM, BBR and flash.
+- At runtime, the firmware listens only. UBX writes (for example PMREQ, or a re-send of the configuration after a backup-cell loss) are optional. They must be sent in the gap after a NAV-PVT frame because the RS485 link is half-duplex [11].
+- The ESP32-S3 ROM may print on GPIO43 at boot [10]. Discard input until the first valid UBX frame with a good checksum.
+
+### 10.7 Bring-up additions
+
+1. Bench-configure the receiver over USB-C and check UBX-MON-VER, then cut the USB jumpers.
+2. Wire option A on the bench. Confirm NAV-PVT arrives on GPIO43 with zero checksum errors over one hour.
+3. Measure the I2C_VCC current, the 3V3 ramp at power-up and the SMA bias voltage.
+4. Try one UBX poll from the board in the post-NAV-PVT gap. Record whether half-duplex writes work.
+5. Repeat the hours-long fix-quality log from §8 with Wi-Fi active and the backlight at full, and compare with the Pico edition.

@@ -31,6 +31,16 @@ These come from the layout mockups in [`layouts/`](layouts/). Three samples:
 
 There are five concepts in total, each drawn for the 600 × 400 e-paper panel and a phone, in normal, alarm and no-fix states. To browse all of them, open [`layouts/index.html`](layouts/index.html) in a browser. No build step is needed, though the fonts load from the web.
 
+## A second option: square touch screen
+
+A parallel edition is being planned around the [Waveshare ESP32-S3-Touch-LCD-4](https://www.waveshare.com/esp32-s3-touch-lcd-4.htm), a 4" 480 × 480 colour touch screen with an ESP32-S3 built in. It runs straight from the boat's 12 V supply through a fuse and protection. The same NEO-F10N GPS connects through a small RS485 converter, because the screen uses up nearly all the board's spare pins. It doesn't replace the Pico design, and so far it's documentation and screen sketches only. There's no firmware for it.
+
+| Watch Circle · touch · night | Alarm Takeover · touch · alarm |
+|---|---|
+| ![Watch Circle on the touch LCD, night palette](layouts/screenshots/watch-circle-touch-normal-night.png) | ![Alarm Takeover on the touch LCD, slide to silence](layouts/screenshots/alarm-takeover-touch-alarm.png) |
+
+Read the [ESP32-S3 touch edition guide](docs/esp32_s3_touch_lcd_4_anchor_alarm_build_guide.md) for parts, GPS wiring and boat power, and open [`layouts/touch-lcd/index.html`](layouts/touch-lcd/index.html) to browse all five touch concepts.
+
 ## What's in the repo
 
 - [`docs/build-steps.md`](docs/build-steps.md) is the step-by-step path through the build. Start with Step 1, which brings up the Pico, toolchain and display before adding other hardware. The page links to the full [build guide](docs/pico_2_w_anchor_alarm_build_guide_v2.md) and the detailed [Step 1 display instructions](docs/display-bring-up.md).
@@ -38,7 +48,8 @@ There are five concepts in total, each drawn for the 600 × 400 e-paper panel an
 - [`examples/display-hello/`](examples/display-hello/) contains the standalone Step 1 sample.
 - [`examples/display-layouts/`](examples/display-layouts/) contains the separate five-screen demo and its pre-rendered images.
 - [`docs/data/`](docs/data/) has one reference file per component: specs, wiring, power notes and sources. It's mostly there so that AI coding agents can look things up without redoing the research each time, but it's readable enough for people too. Its [README](docs/data/README.md) tracks design checks and measurements that remain open.
-- [`layouts/`](layouts/) is the static HTML mockup gallery, with screenshots in [`layouts/screenshots/`](layouts/screenshots/).
+- [`docs/esp32_s3_touch_lcd_4_anchor_alarm_build_guide.md`](docs/esp32_s3_touch_lcd_4_anchor_alarm_build_guide.md) is the planning guide for the ESP32-S3 touch-screen edition.
+- [`layouts/`](layouts/) is the static HTML mockup gallery for e-paper and phone, and [`layouts/touch-lcd/`](layouts/touch-lcd/) holds the touch-screen concepts. Screenshots are in [`layouts/screenshots/`](layouts/screenshots/).
 
 ## Status
 
@@ -47,6 +58,7 @@ There are five concepts in total, each drawn for the 600 × 400 e-paper panel an
 - [x] Display layout concepts mocked up
 - [x] Step 1 display-only sample builds for Pico 2 W
 - [x] Separate five-layout simulation builds for Pico 2 W
+- [x] ESP32-S3 touch edition planned: guide, component notes and five touch screen sketches (no firmware)
 - [ ] Complete the open design checks in [`docs/data/README.md`](docs/data/README.md)
 - [ ] Breadboard prototype
 - [ ] Step 1 on-device acceptance

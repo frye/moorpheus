@@ -7,6 +7,10 @@ description: Write or review Moorpheus firmware in C for the Raspberry Pi Pico 2
 
 Get pins, timings and part behaviour from the `moorpheus-hardware-facts` skill. Don't hard-code values you haven't looked up.
 
+This skill covers the Pico 2 W edition only. The planned ESP32-S3 touch edition
+(`docs/esp32_s3_touch_lcd_4_anchor_alarm_build_guide.md`) has no firmware yet; don't
+apply these Pico SDK rules or pin numbers to it.
+
 ## Stack
 
 C with Pico SDK 2.3.x, a cooperative non-blocking service loop, `pico_cyw43_arch_lwip_threadsafe_background`, and RP2350 A/B partitions with Try-Before-You-Buy (TBYB) for updates, with USB BOOTSEL and UF2 for recovery. Don't use an RTOS, MicroPython or Arduino unless the user asks. The rationale is in `docs/best-language-framework-update-mechanism.md`.

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Anchor Alarm — 4″ Square Touch LCD Concepts</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='4' y='4' width='24' height='24' rx='4' fill='none' stroke='%2356c2dd' stroke-width='3'/%3E%3Ccircle cx='16' cy='16' r='4' fill='%2356c2dd'/%3E%3C/svg%3E">
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="site-head">
+  <div class="head-text">
+    <h1>Anchor Alarm — 4&Prime; Square Touch LCD Concepts</h1>
+    <p class="sub">Waveshare ESP32-S3-Touch-LCD-4 &middot; 480 &times; 480 IPS &middot; RGB565 &middot; capacitive touch &middot; five touch-first directions, one shared scenario &middot; <a href="../index.html">e-paper / phone gallery</a></p>
+  </div>
+  <span class="simbadge">SIMULATED DATA</span>
+</header>
+
+<nav class="controls" aria-label="Gallery controls">
+  <div class="cgroup" id="conceptTabs" role="tablist"></div>
+  <div class="cgroup right">
+    <div class="seg" id="stateSeg" role="group" aria-label="Scenario state"></div>
+    <div class="seg" id="themeSeg" role="group" aria-label="Day or night palette"></div>
+  </div>
+</nav>
+
+<main class="stage-wrap">
+  <div class="fitbox" id="fitbox" aria-live="polite"></div>
+  <div class="caption" id="caption"></div>
+</main>
+
+<section class="thumbs-sec">
+  <h2 class="thumbs-title">All five concepts</h2>
+  <div class="thumbs" id="thumbs"></div>
+</section>
+
+<footer class="site-foot">
+  <p>Mockups only — no firmware, no live data and nothing tested on hardware. Screens are drawn at the panel&rsquo;s native 480 &times; 480 px. The panel is about 72&nbsp;mm square, so 1&nbsp;px &asymp; 0.15&nbsp;mm: primary touch targets are &ge; 64&nbsp;px (&asymp; 10&nbsp;mm) and nothing tappable is under 48&nbsp;px (&asymp; 7&nbsp;mm). Night mode assumes a dimmed backlight and a red-shifted palette; alarms override the dimming. This is a prototype concept, not a certified marine safety system.</p>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
