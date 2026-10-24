@@ -359,6 +359,7 @@ Usage notes:
 16. NXP, SC16IS740/750/760 single UART with I²C-bus/SPI interface datasheet — https://www.nxp.com/docs/en/data-sheet/SC16IS740_750_760.pdf
 17. SparkFun, "SparkFun GNSS Receiver Breakout - MAX-M10S (Qwiic)" — https://www.sparkfun.com/sparkfun-gnss-receiver-breakout-max-m10s-qwiic.html
 18. Moorpheus ESP32 touch edition build guide, `docs/esp32_s3_touch_lcd_4_anchor_alarm_build_guide.md` (§5, §6, §7)
+19. Waveshare Wiki, "TTL TO RS485 (C)" — https://www.waveshare.com/wiki/TTL_TO_RS485_(C) ; project note [waveshare-ttl-to-rs485-c.md](waveshare-ttl-to-rs485-c.md)
 
 ## 10. ESP32-S3 touch edition wiring
 
@@ -392,6 +393,8 @@ This section covers the planned [ESP32-S3 touch edition](../esp32_s3_touch_lcd_4
 | Converter A / B | Board terminal 3 A / 4 B | Short twisted pair |
 | Breakout 5V, PPS, EVENT, SAFE, RST | — | Leave open, as in §4 |
 | Breakout USB-TX / USB-RX jumpers | Cut | As in §6.1, after bench configuration |
+
+Converter choice: the DIN-rail Waveshare TTL TO RS485 (B) [11] is the baseline. The bare-board TTL TO RS485 (C) [19] is a drop-in with the same connections and this same wiring, and fits inside the display enclosure. Tie the converter's RS485 ground to board GND either way.
 
 Placement: the breakout and converter go next to the board, in the same enclosure. The 3 m ANN-MB5 cable runs to the antenna as in the Pico edition [9][18].
 
