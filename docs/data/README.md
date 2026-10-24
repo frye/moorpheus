@@ -45,6 +45,7 @@ Some files serve both editions. Those files keep the Pico wiring in their main s
 | Passives and general hardware | ESP32 touch edition | [passive-components-and-general-hardware.md](passive-components-and-general-hardware.md) |
 | SparkFun Qwiic Buzzer | ESP32 optional external sounder on terminal I²C | [sparkfun-qwiic-buzzer.md](sparkfun-qwiic-buzzer.md) |
 | Qwiic cables and connectors | ESP32 optional, only with a Qwiic accessory | [qwiic-cables-and-connectors.md](qwiic-cables-and-connectors.md) |
+| Adafruit BMP390 STEMMA QT breakout | ESP32 optional pressure/temperature trends (planned); BME280 humidity alternative noted | [adafruit-bmp390.md](adafruit-bmp390.md) |
 | SparkFun Large Piezo Alarm | ESP32 optional loud alarm (switching method open) | [sparkfun-large-piezo-alarm.md](sparkfun-large-piezo-alarm.md) |
 | Logic-level N-MOSFET driver | ESP32 optional loud alarm (switching method open) | [logic-level-n-mosfet-driver.md](logic-level-n-mosfet-driver.md) |
 
@@ -65,6 +66,7 @@ The controller, display, GNSS and power conflicts formerly listed here have been
 - **ESP32 edition — buzzer and backlight:** the onboard buzzer's sound level, the minimum stable backlight level, backlight current and direct-sun readability are all unpublished. Measure them before deciding the alarm and night-mode policy.
 - **ESP32 edition — dark vs light background power:** the backlit IPS LCD is expected to draw nearly the same power on a black screen as on a white one (generic LCD figure 1–5 %). Measure white vs black full screen at the same backlight level before assuming any palette saving. See [waveshare-esp32-s3-touch-lcd-4.md](waveshare-esp32-s3-touch-lcd-4.md) §5.1.
 - **ESP32 edition — temperature:** the N16R8 module is rated to 65 °C ambient, and the LCD temperature range is unpublished. Log the enclosure temperature in its planned location.
+- **ESP32 edition — optional BMP390:** installed accuracy, thermal bias, vent/environmental protection, breakout current and combined I²C loading remain unverified. Identify the fitted BMP390/BMP390L before qualification. The sensor shares the alarm-control bus; bounded software retries cannot isolate a physical bus short. See [adafruit-bmp390.md](adafruit-bmp390.md).
 - **ESP32 edition — V1–V3 I²C lock-up:** on SW6106 boards powered from VIN without a battery, the I²C bus can be held low. Prefer V4, or always fit a battery.
 - **Prototype measurements:** retain every "unverified" or "measure" label in the component notes until measured on the assembled design. Code examples remain syntax-checked against stub headers only; none have run on hardware.
 

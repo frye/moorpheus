@@ -25,6 +25,7 @@ Optional items in this guide:
 
 - an external sounder on the terminal I²C (§9);
 - a physical ACK button on the terminal I²C (§9);
+- a BMP390 pressure/temperature sensor on the terminal I²C (§6), for future local histories and trends; BME280 is an alternative if humidity is needed;
 - NMEA 0183 or NMEA 2000 input from the boat network instead of the NEO-F10N (§6, future only).
 
 This is a prototype plan, not a certified marine safety system or fabrication-ready PCB schematic. Part choices, source ratings, grounding, cable routing and environmental protection must be reviewed before permanent installation. Use an independent anchor-watch method during trials.
@@ -94,7 +95,9 @@ Product links identify parts. They are not guarantees of stock or price. Check c
 | 1 | SparkFun Qwiic Buzzer | [SparkFun](https://www.sparkfun.com/sparkfun-qwiic-buzzer.html) | External sounder on terminal I²C, default 0x34 [R18] |
 | 1 | I²C push button with LED (e.g. SparkFun Qwiic Button) | [SparkFun](https://www.sparkfun.com/sparkfun-qwiic-button-red-led.html) | Physical ACK. Not yet evaluated, no data file [R20] |
 | 1 | Large Piezo Alarm + driver | [SparkFun COM-13939](https://www.sparkfun.com/large-piezo-alarm-16-tone.html) | Needs an I²C-controlled switch. Method not chosen (§9) [R18] |
-| As needed | Qwiic cable to screw-terminal leads | [SparkFun Qwiic cables](https://www.sparkfun.com/qwiic-cable-breadboard-jumper-4-pin.html) | Only with a Qwiic accessory |
+| 1 | Adafruit BMP390 STEMMA QT breakout | [Adafruit 4816](https://www.adafruit.com/product/4816) | Preferred optional pressure/temperature sensor; PCB outline 25.4 × 17.78 mm plus cable/connector clearance. Identify BMP390/BMP390L fitted part before qualification [R25] |
+| (1) | BME280 breakout, instead of BMP390 | [Adafruit 2652](https://www.adafruit.com/product/2652) | Humidity alternative, not a second required sensor. Supplier quotes ±3 % RH, ±1 hPa absolute pressure, ±1 °C; installed results unverified [R28] |
+| As needed | Qwiic/STEMMA QT cable to screw-terminal flying leads | [SparkFun Qwiic cables](https://www.sparkfun.com/qwiic-cable-breadboard-jumper-4-pin.html) | With a Qwiic accessory or BMP390; no QT socket on this board [R3][R25] |
 
 Already included with the board: two 3.5 mm 10-pin pluggable terminal blocks and the board itself with bonded glass [R1].
 
@@ -143,10 +146,10 @@ The RGB panel uses almost every GPIO. There are no free GPIO for buttons, a soun
 | 4 | RS485 B | GNSS converter B |
 | 5 | CAN L | Unused. Reserved for a future isolated NMEA 2000 interface |
 | 6 | CAN H | Unused |
-| 7 | I2C_VCC (3V3 by default) | 3.3 V feed for the GNSS breakout and converter |
-| 8 | GND | GNSS and converter ground |
-| 9 | SDA | Optional external sounder or ACK button |
-| 10 | SCL | Optional external sounder or ACK button |
+| 7 | I2C_VCC (3V3 by default) | 3.3 V feed for GNSS, converter and optional BMP390 VIN |
+| 8 | GND | GNSS, converter and optional sensor ground |
+| 9 | SDA | Optional external sounder, ACK button or BMP390 SDA |
+| 10 | SCL | Optional external sounder, ACK button or BMP390 SCK/SCL |
 
 | Internal resource | Use | Note |
 |---|---|---|
@@ -172,7 +175,15 @@ Pre-configure the NEO-F10N on the bench over its USB-C, then cut its USB jumpers
 
 ### I²C addresses
 
-V4: CH32 0x24, PCF85063 0x51, GT911 0x5D or 0x14. V1–V3: TCA9554 0x20 and SW6106 0x3C instead of the CH32. Optional additions: Qwiic Buzzer 0x34, Qwiic Button 0x6F (default, **unverified**). No conflicts. [R4][R18][R20]
+V4: CH32 0x24, PCF85063 0x51, GT911 0x5D or 0x14. V1–V3: TCA9554 0x20 and SW6106 0x3C instead of the CH32. Optional additions: Qwiic Buzzer 0x34, Qwiic Button 0x6F (default, **unverified**), BMP390 0x77 (ADDR bridged: 0x76). Neither BMP390 address conflicts with these documented devices. Preserve the older-revision bus and power warnings in the board note. [R4][R18][R20][R26]
+
+### Optional pressure and temperature sensor
+
+The [Adafruit BMP390 component reference](data/adafruit-bmp390.md) records the specifications, sources and qualification checklist. This is documentation only, with no sensor firmware or hardware results. The breakout accepts 3–5 V VIN, but use **3.3 V only** here: inspect H3 for the 3.3 V selection and measure H4 pin 7 before connecting. Wire H4 7/8/9/10 to breakout VIN/GND/SDA/SCK respectively, using a short QT-to-flying-lead adapter. Leave 3Vo (regulator output), CS, SDO and INT disconnected for I²C polling. No free GPIO or onboard QT socket is assumed. [R3][R25][R26]
+
+The sensor supports the existing GPIO15 SDA / GPIO7 SCL bus at 400 kHz. Check combined pull-ups, capacitance and rise times with all fitted accessories and level shifters. Include its measured breakout load alongside the GNSS and converter in the terminal supply budget. Power down before wiring; review mixed USB/VIN/battery or separately powered accessory paths to prevent back-feeding an unpowered device. A physical sensor/cable short can still stop the shared alarm-control bus; software retries cannot isolate it. [R3][R4][R25][R27]
+
+Place it away from the display/backlight, MCU and regulators, with an atmospheric vent protected against splash, salt and condensation. The bare breakout is not waterproof. BMP390 temperature accuracy is ±0.5 °C at 25 °C and ±1.5 °C over 0–65 °C, not ±0.5 °C everywhere; internal temperature depends on PCB heat and is typically above ambient. It is not automatically an outside-air thermometer. Identify the fitted BMP390/BMP390L variant and qualify installed accuracy, vent response and current. [R25][R27]
 
 ## 7. Antenna placement
 
@@ -198,6 +209,8 @@ No firmware exists for this edition. This section records the intended structure
 - UI: LVGL. It reads a copy of the alarm state and posts user commands to a queue.
 - Network: Wi-Fi, HTTP and WebSocket.
 - Persistence: anchor reference, radius and armed state in NVS, with version and integrity checking.
+
+**Optional sensor service (future).** Poll the BMP390 through the existing I²C owner, with bounded transactions and retries below buzzer and SYS_EN requests in priority. Bosch's portable C BMP3 Sensor API is an integration reference, not included firmware. Report missing, stale and faulty readings visibly, never as zero or invented observations. Do not power-cycle the shared alarm-control rail to recover this sensor. [R25]
 
 **Priorities.** The alarm and GNSS tasks run above the UI. The UI can drop frames. The alarm cannot miss a fix.
 
@@ -258,6 +271,12 @@ Dimming is through the CH32 PWM output into the backlight boost converter's feed
 - save power with the backlight level and the idle timeout (wake on touch);
 - never let a dimmed or dark backlight delay or hide an alarm. The alarm forces full backlight and the buzzer.
 
+### Optional local trends (future only)
+
+Timestamped pressure in hPa and temperature in °C could be stored and shown offline, with a pressure-trend indicator once enough valid history exists. No histories or weather screens are implemented. Sampling cadence, trend window, minimum valid history and persistence remain undecided. Show gaps and restarts; do not invent samples or draw a trend arrow from insufficient history.
+
+Label the sensor's reading **local/station pressure**, distinct from sea-level-reduced pressure supplied by a weather service. Do not use noisy GNSS altitude as an automatic pressure correction. The sensor provides neither wind nor rain measurements nor a complete forecast. Weather UI must remain below the GNSS and anchor-alarm work in priority and never cover or delay an alarm. Temperature placement limits are in §6. [R25]
+
 ### Touch
 
 - **Wet screen.** Spray and rain on a capacitive screen can cause false touches. Test with water on the glass (§12).
@@ -297,6 +316,8 @@ Additions for this edition:
 - **OTA** over the local network, as in §8. Authenticated. Never while armed. Rollback enabled. [R8]
 - **Wi-Fi power.** Wi-Fi transmit peaks reach 340 mA at 3.3 V on the chip alone. [R5] Measure the board current with Wi-Fi associated and idle.
 
+**Weather display, later only.** Network forecasts would be separate from local sensor observations and must show provider/source, location, issued and valid times, fetch time, and stale/offline status. Wi-Fi association or a DataHub connection is not proof of internet access. No weather API/provider is selected. If connectivity disappears, retain clearly aged data or show unavailable; never present a cached forecast as current. Fetches, retries and rendering must be bounded, lower-priority work and never a dependency of the anchor alarm.
+
 ## 11. Power budget and backup sizing
 
 Nothing in this section has been measured. Waveshare publishes no current figures. [R1][R2]
@@ -319,6 +340,7 @@ Known component figures (datasheets and estimates, not board measurements):
 - TTL-to-RS485 converter ≈ 54 mA at 5 V (Waveshare FAQ). Not measured at 3.3 V. [R14] The optional (C) has no published figure; budget it like the (B) until measured. [R24]
 - Backlight: not published. Expected to be the largest single load (**inferred**).
 - Screen content: dark vs light background is expected to change power by only a few percent, because the backlight dominates. **Unverified — measure** at full and night levels. Plan the budget on backlight level and on-time, not on palette. [R21][R22]
+- Optional BMP390: chip typical 3.2 µA at 1 Hz pressure + temperature is **not total breakout current**. Measure the regulator/pull-up-inclusive load and combined I2C_VCC margin with GNSS and converter, including charging, alarm and battery hand-off. No installed power or runtime figure is verified. [R25][R27]
 
 Sizing formulas, with power measured at the battery:
 
@@ -359,6 +381,16 @@ Fault-injection requirements:
 - interrupted settings writes
 
 Report real prototype limitations rather than silently hiding them.
+
+### Optional sensor acceptance — only when fitted
+
+Keep the existing baseline gates above. Before accepting the BMP390 option, follow [its component checklist](data/adafruit-bmp390.md#8-bring-up--test-checklist--not-yet-performed):
+
+- Identify the display revision and fitted sensor variant; inspect H3 and meter the terminal supply before hookup. Verify the address and compensated readings, then compare pressure with a same-height, same-pressure-basis reference and temperature after thermal equilibrium. [R25][R26]
+- Measure total breakout current and combined supply margin, bus loading/rise times and alarm/GNSS timing during touch, backlight, Wi-Fi and VIN/battery transitions.
+- Inject missing, stale and failed sensor reads on a current-limited bench, then a shared-bus fault. Confirm bounded recovery, visible faults, priority for buzzer/SYS_EN and no sensor-driven rail cycling; document that a physical bus short can still defeat alarm control.
+- Qualify thermal placement, atmospheric vent response and splash/salt/condensation protection. Installed accuracy and environmental suitability remain **unverified** until measured.
+- When history or network weather software is added, test insufficient history, gaps, restart and stale/offline forecasts without suppressing the anchor alarm.
 
 ## 13. References
 
@@ -409,3 +441,11 @@ Report real prototype limitations rather than silently hiding them.
 [R23] [Boatingwiththebaileys/Marine-Displays](https://github.com/Boatingwiththebaileys/Marine-Displays/tree/22f1f5f2c78c73198f9e8ee392407172ae29d951), `ESP32-S3_Square_Display`, reviewed at commit 22f1f5f (no licence: ideas only); details in [ui-design-references.md](ui-design-references.md)
 
 [R24] [Waveshare TTL TO RS485 (C) wiki](https://www.waveshare.com/wiki/TTL_TO_RS485_(C)); note [waveshare-ttl-to-rs485-c.md](data/waveshare-ttl-to-rs485-c.md)
+
+[R25] [Adafruit BMP390 product 4816](https://www.adafruit.com/product/4816); [component reference](data/adafruit-bmp390.md), including PCB outline read from [Adafruit Eagle CAD](https://github.com/adafruit/Adafruit-BMP3xx-PCB/blob/master/Adafruit%20BMP390.brd) and future [Bosch BMP3 Sensor API](https://github.com/boschsensortec/BMP3_SensorAPI)
+
+[R26] [Adafruit BMP3xx pinouts: supply, I²C pins and address jumper](https://learn.adafruit.com/adafruit-bmp388-bmp390-bmp3xx/pinouts)
+
+[R27] [Bosch BMP390 datasheet, BST-BMP390-DS002](https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bmp390-ds002.pdf), pp3, 7–8 (chip current, I²C and accuracy conditions, internal-temperature caveat)
+
+[R28] [Adafruit BME280 humidity/pressure/temperature breakout, product 2652](https://www.adafruit.com/product/2652)

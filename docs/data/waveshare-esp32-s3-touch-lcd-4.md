@@ -156,10 +156,12 @@ This board is the controller of the planned [ESP32-S3 touch edition](../esp32_s3
 | 1 VIN / 2 GND | Fused, switched, protected boat 12 V | [marine-12v-direct-input-protection.md](marine-12v-direct-input-protection.md) |
 | 3 A / 4 B | NEO-F10N through a TTL-to-RS485 adapter | [sparkfun-neo-f10n-gnss.md](sparkfun-neo-f10n-gnss.md) §10, [waveshare-ttl-to-rs485-b.md](waveshare-ttl-to-rs485-b.md) |
 | 5 L / 6 H | Unused in baseline. Reserved for an NMEA 2000 option | Build guide §6 |
-| 7 VCC / 8 GND | 3.3 V supply for the GNSS breakout and adapter TTL side | [sparkfun-neo-f10n-gnss.md](sparkfun-neo-f10n-gnss.md) §10 |
-| 9 SDA / 10 SCL | Unused in baseline. Optional external I²C accessory | Build guide §6 |
+| 7 VCC / 8 GND | 3.3 V supply for the GNSS breakout and adapter TTL side; optional BMP390 VIN/GND in parallel after supply-budget review | [sparkfun-neo-f10n-gnss.md](sparkfun-neo-f10n-gnss.md) §10; [adafruit-bmp390.md](adafruit-bmp390.md) §4 |
+| 9 SDA / 10 SCL | Unused in baseline. Optional sounder, ACK button or BMP390 on shared I²C | Build guide §6; [adafruit-bmp390.md](adafruit-bmp390.md) |
 | PH2.0 battery | Protected 1S pack | [lipo-1s-protected-battery.md](lipo-1s-protected-battery.md) §10 |
 | USB-C | Service and flashing only. Unplugged when installed | §7 |
+
+**Optional BMP390, not built.** Inspect H3 and measure I2C_VCC at 3.3 V before connecting H4 pins 7/8/9/10 to sensor VIN/GND/SDA/SCL. Use a short QT-to-flying-lead adapter; there is no onboard QT socket. The default 0x77 (ADDR bridged: 0x76) conflicts with none of the devices in §3.4; sensor pinout and address sources are in [adafruit-bmp390.md](adafruit-bmp390.md) §§2–4. Review combined pull-ups, capacitance, mixed-power paths and current with GNSS and converter. Leave sensor 3Vo, CS, SDO and INT disconnected. Keep sensor transactions bounded and below buzzer/SYS_EN priority, with visible missing/stale/fault status and no shared-rail cycling to reset the sensor. A physical bus short still threatens alarm control (§7). Thermal separation, a protected atmospheric vent and installed accuracy/current all need qualification; the bare breakout is not waterproof.
 
 ### 4.1 Power paths (V4.0, from schematic [3])
 
