@@ -17,6 +17,12 @@ You drop anchor, press a button, and the device remembers where the boat is. It 
 
 The design is a prototype. It isn't a certified marine safety system, so if you try anything from it on a real boat, keep a second anchor watch running alongside.
 
+An optional [BMP390 sensor](docs/data/adafruit-bmp390.md) is planned for local
+pressure and temperature trends, with no network needed. A weather forecast
+display could come later if internet access is available. Neither feature is
+implemented; the sensor's temperature reading also needs checking against
+enclosure heat.
+
 ## What the screens might look like
 
 These come from the layout mockups in [`layouts/`](layouts/). Three samples:
