@@ -39,7 +39,7 @@ A parallel edition is being planned around the [Waveshare ESP32-S3-Touch-LCD-4](
 |---|---|
 | ![Watch Circle on the touch LCD, night palette](layouts/screenshots/watch-circle-touch-normal-night.png) | ![Alarm Takeover on the touch LCD, slide to silence](layouts/screenshots/alarm-takeover-touch-alarm.png) |
 
-Read the [ESP32-S3 touch edition guide](docs/esp32_s3_touch_lcd_4_anchor_alarm_build_guide.md) for parts, GPS wiring and boat power, and open [`layouts/touch-lcd/index.html`](layouts/touch-lcd/index.html) to browse all five touch concepts.
+Read the [ESP32-S3 touch edition guide](docs/esp32_s3_touch_lcd_4_anchor_alarm_build_guide.md) for parts, GPS wiring and boat power, and open [`layouts/touch-lcd/index.html`](layouts/touch-lcd/index.html) to browse all six touch concepts. One of them borrows layout ideas, but no code or assets, from the [Marine-Displays](https://github.com/Boatingwiththebaileys/Marine-Displays) project; [`docs/ui-design-references.md`](docs/ui-design-references.md) logs that and the other outside references.
 
 ## What's in the repo
 
@@ -58,7 +58,7 @@ Read the [ESP32-S3 touch edition guide](docs/esp32_s3_touch_lcd_4_anchor_alarm_b
 - [x] Display layout concepts mocked up
 - [x] Step 1 display-only sample builds for Pico 2 W
 - [x] Separate five-layout simulation builds for Pico 2 W
-- [x] ESP32-S3 touch edition planned: guide, component notes and five touch screen sketches (no firmware)
+- [x] ESP32-S3 touch edition planned: guide, component notes and six touch screen sketches (no firmware)
 - [ ] Complete the open design checks in [`docs/data/README.md`](docs/data/README.md)
 - [ ] Breadboard prototype
 - [ ] Step 1 on-device acceptance

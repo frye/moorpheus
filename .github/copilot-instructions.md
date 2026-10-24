@@ -28,7 +28,8 @@ this baseline only after the on-device acceptance gate in `docs/display-bring-up
 | `docs/data/` | One reference file per component (specs, wiring, programming, power, sources) |
 | `docs/data/README.md` | Component index plus **Open discrepancies with the build guide** |
 | `layouts/` | Static HTML/JS mockups of the display concepts (`index.html`, `app.js`, `styles.css`) |
-| `layouts/touch-lcd/` | Static HTML/JS mockups of five touch concepts for the 480 × 480 ESP32-S3 touch LCD |
+| `layouts/touch-lcd/` | Static HTML/JS mockups of six touch concepts for the 480 × 480 ESP32-S3 touch LCD |
+| `docs/ui-design-references.md` | Log of outside UI references, fonts and their licences; what was and wasn't reused |
 | `layouts/screenshots/` | PNG captures of selected layouts, used in the README |
 
 ## Working rules

@@ -14,17 +14,17 @@ const STATES = {
   normal: {
     key: 'normal', dist: 38, margin: 112, bearing: 214, cog: 48, sog: 0.4,
     sats: 19, bands: 'L1+L5', acc: '~4 ft', fixAge: 1,
-    link: 'DataHub', power: '12.4 V', lastKnown: null, noFixS: 0,
+    link: 'DataHub', power: '12.4 V', lastKnown: null, noFixS: 0, maxDrift: 46,
   },
   alarm: {
     key: 'alarm', dist: 172, margin: -22, bearing: 236, cog: 52, sog: 1.8,
     sats: 17, bands: 'L1+L5', acc: '~6 ft', fixAge: 1,
-    link: 'DataHub', power: '12.4 V', lastKnown: null, noFixS: 0,
+    link: 'DataHub', power: '12.4 V', lastKnown: null, noFixS: 0, maxDrift: 173,
   },
   nofix: {
     key: 'nofix', dist: null, margin: null, bearing: null, cog: null, sog: null,
     sats: 0, bands: '—', acc: '—', fixAge: null,
-    link: 'DataHub', power: '12.4 V', lastKnown: { dist: 41, at: '02:46:26' }, noFixS: 34,
+    link: 'DataHub', power: '12.4 V', lastKnown: { dist: 41, at: '02:46:26' }, noFixS: 34, maxDrift: 42,
   },
 };
 
@@ -166,9 +166,10 @@ function rWatch(st) {
   const isA = st.key === 'alarm', isN = st.key === 'nofix';
   const num = isN ? NA : st.dist;
   const sub = isA ? '<b class="c-alarm">+22 ft</b> beyond' : isN ? `last ${st.lastKnown.dist} ft<br>at ${st.lastKnown.at}` : 'margin <b>112 ft</b>';
+  const maxRow = `<div class="wc-tr"><span class="k">MAX DRIFT</span><span class="v${isA ? ' c-alarm' : ''}">${st.maxDrift} ft</span></div>`;
   const tr = isN
-    ? `<div class="wc-tr"><span class="k">NO FIX</span><span class="v c-warn">${st.noFixS} s</span></div>`
-    : `<div class="wc-tr"><span class="k">BRG</span><span class="v">${fmtBrg(st)}</span></div>
+    ? `<div class="wc-tr"><span class="k">NO FIX</span><span class="v c-warn">${st.noFixS} s</span></div>${maxRow}`
+    : `${maxRow}<div class="wc-tr"><span class="k">BRG</span><span class="v">${fmtBrg(st)}</span></div>
        <div class="wc-tr"><span class="k">SOG</span><span class="v${isA ? ' c-alarm' : ''}">${fmtSog(st)} kt</span></div>`;
   const radiusChip = isA ? '' : `<div class="wc-rchip"><span class="k">RADIUS</span><b>150 ft</b><span class="hint">drag ring</span></div>`;
   const bar = isA
@@ -419,6 +420,113 @@ function rTake(st) {
 }
 
 /* ============================================================
+   CONCEPT 06 — ANCHOR CHART (MFD STYLE)
+   Layout ideas inspired by Boatingwiththebaileys/Marine-Displays
+   (no licence: ideas only, independent code and palette).
+   ============================================================ */
+
+/* sweeping COG tape: a large arc whose pivot sits far below the strip,
+   fixed pointer at top centre */
+function headingTape(st) {
+  const cog = st.cog != null ? st.cog : 48;
+  const cx = 240, r = 590, cy = 15 + r;
+  const P = (off, rr) => polar(cx, cy, rr, off);
+  const [ax, ay] = P(-26, r), [bx, by] = P(26, r);
+  const card = { 0: 'N', 45: 'NE', 90: 'E', 135: 'SE', 180: 'S', 225: 'SW', 270: 'W', 315: 'NW' };
+  let ticks = '';
+  for (let h = Math.ceil((cog - 26) / 5) * 5; h <= cog + 26; h += 5) {
+    const off = h - cog, hh = ((h % 360) + 360) % 360;
+    const major = hh % 10 === 0 || card[hh] != null;
+    const [x1, y1] = P(off, r), [x2, y2] = P(off, r - (major ? 11 : 6));
+    ticks += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" style="stroke:${v(major ? 'ink' : 'dim')}" stroke-width="${major ? 2 : 1.2}"/>`;
+    if (major && Math.abs(off) <= 16) {
+      const [tx, ty] = P(off, r - 21);
+      const lbl = card[hh] != null ? card[hh] : String(hh).padStart(3, '0');
+      ticks += `<text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="middle" class="${card[hh] != null ? 't13' : 't11'}" style="fill:${v(card[hh] != null ? 'ink' : 'dim')}" transform="rotate(${off} ${tx.toFixed(1)} ${ty.toFixed(1)})">${lbl}</text>`;
+    }
+  }
+  const isN = st.key === 'nofix';
+  return `<div class="ch-tape${isN ? ' off' : ''}">
+    <svg viewBox="0 0 480 48" width="480" height="48" aria-label="COG tape">
+      <path d="M ${ax.toFixed(1)} ${ay.toFixed(1)} A ${r} ${r} 0 0 1 ${bx.toFixed(1)} ${by.toFixed(1)}" fill="none" style="stroke:${v('line')}" stroke-width="2"/>
+      ${ticks}
+      <polygon points="232,0 248,0 240,13" style="fill:${v(st.key === 'alarm' ? 'alarm' : 'accent')}"/>
+    </svg>
+    <span class="ch-tape-l">COG <b>${fmtCog(st)}</b></span>
+    <span class="ch-tape-r">SOG <b>${fmtSog(st)}</b> kt</span>
+  </div>`;
+}
+
+function chartPlot(st) {
+  const W = 320, H = 292, cx = W / 2, cy = H / 2;
+  const ring = 0.85 * Math.min(cx, cy); // fixed screen fraction; the scale follows the radius
+  const k = ring / RADIUS;
+  const isA = st.key === 'alarm', isN = st.key === 'nofix';
+  const clampR = ring + 16;
+  // track: one dot per 5 s over the last 5 min, older dots dimmer
+  const N = isN ? 52 : 60;
+  let dots = '';
+  let last = null;
+  for (let i = 0; i < N; i++) {
+    const t = i / 59;
+    let a = 34 + 30 * Math.sin(i * 0.11), d = 37 + 5 * Math.sin(i * 0.17 + 0.6);
+    if (isA) { const u = Math.max(0, (i - 20) / 39); d = d + (172 - d) * u ** 1.5; a = a + (56 - a) * u; }
+    if (isN && i === N - 1) d = 41;
+    const rr = Math.min(d * k, clampR);
+    const [x, y] = polar(cx, cy, rr, a);
+    last = { x, y, d, a };
+    if (i < N - 1) dots += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.3" style="fill:${v(d > RADIUS ? 'alarm' : 'accent')}" opacity="${(0.12 + 0.8 * t).toFixed(2)}"/>`;
+  }
+  const ringCol = isA ? v('alarm') : isN ? v('warn') : v('ring-armed');
+  const clamped = st.dist != null && st.dist * k > clampR;
+  const cog = st.cog != null ? st.cog : 48;
+  const boat = isN
+    ? `<circle cx="${last.x.toFixed(1)}" cy="${last.y.toFixed(1)}" r="7" fill="none" style="stroke:${v('warn')}" stroke-width="2.5"/>
+       <text x="${(last.x + 12).toFixed(1)}" y="${(last.y - 8).toFixed(1)}" class="t11" style="fill:${v('warn')}">last</text>`
+    : `<g transform="translate(${last.x.toFixed(1)} ${last.y.toFixed(1)}) rotate(${cog})"><polygon points="0,-14 9,10 -9,10" style="fill:${isA ? v('alarm') : v('ink')}"/></g>
+       ${clamped ? `<text x="${(last.x - 30).toFixed(1)}" y="${(last.y - 14).toFixed(1)}" class="t11" style="fill:${v('alarm')}">off-scale</text>` : ''}`;
+  return `<svg class="ch-svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Anchor chart">
+    <text x="${cx}" y="12" class="t11" text-anchor="middle" style="fill:${v('dim')}">N</text>
+    <circle cx="${cx}" cy="${cy}" r="${(ring / 2).toFixed(1)}" fill="none" style="stroke:${v('line')}" stroke-dasharray="2 5"/>
+    <circle cx="${cx}" cy="${cy}" r="${ring.toFixed(1)}" fill="none" style="stroke:${ringCol}" stroke-width="3.5"${isN ? ' stroke-dasharray="10 8"' : ''} class="${isA ? 'pulse-stroke' : ''}"/>
+    ${dots}
+    <g transform="translate(${cx - 11} ${cy - 11})" style="color:${v('dim')}">${ICON.anchor}</g>
+    ${boat}
+    <text x="8" y="${H - 8}" class="t11" style="fill:${v('faint')}">ring = 150 ft · inner 75</text>
+  </svg>`;
+}
+
+function rChart(st) {
+  const isA = st.key === 'alarm', isN = st.key === 'nofix';
+  const row = (k, val, cls = '') => `<div class="ch-row"><span class="k">${k}</span><span class="v ${cls}">${val}</span></div>`;
+  const side = [
+    row('DISTANCE', isN ? `${NA}<small>ft</small>` : `${st.dist}<small>ft</small>`, isA ? 'c-alarm big' : isN ? 'c-warn big' : 'big'),
+    isN ? row('NO FIX', `${st.noFixS}<small>s</small>`, 'c-warn') : row('BRG ANCHOR', fmtBrg(st)),
+    row('MAX DRIFT', `${st.maxDrift}<small>ft</small>`, isA ? 'c-alarm' : ''),
+    row('RADIUS', `150<small>ft</small>`),
+  ].join('');
+  const right = isA
+    ? `<div class="ch-silence">${holdButton('HOLD · SILENCE', `${SILENCE_S} s`, 'alarm')}</div>`
+    : `<div class="hold ch-drop${isN ? ' disabled' : ''}" role="button"><span class="hold-fill" style="width:0"></span><span class="hold-l">Drop here</span><span class="hold-s">hold 2 s</span></div>
+       <div class="ch-tog" role="switch" aria-checked="true"><span class="ch-tl">Alarm</span><span class="ch-sw"><i></i></span></div>`;
+  return `<div class="scr ch">
+    ${statusBar(st, sel.night)}
+    ${headingTape(st)}
+    <div class="ch-main">
+      ${chartPlot(st)}
+      <div class="ch-side">${side}</div>
+    </div>
+    <div class="ch-band">
+      <div class="step${isA ? ' disabled' : ''}" role="button" aria-label="Radius minus 10 ft">−</div>
+      <div class="ch-rad"><b>150</b><span>ft · ±10</span></div>
+      <div class="step${isA ? ' disabled' : ''}" role="button" aria-label="Radius plus 10 ft">+</div>
+      ${right}
+    </div>
+    <div class="ch-pages"><span class="dots"><i class="on"></i><i></i><i></i><i></i></span><span class="pg-lbl">Anchor · swipe for Position, Graph, System</span></div>
+  </div>`;
+}
+
+/* ============================================================
    GALLERY
    ============================================================ */
 
@@ -448,11 +556,16 @@ const CONCEPTS = [
     render: rTake,
     note: 'The normal screen is deliberately quiet: one number and a thin progress ring, which suits a dimmed backlight at night. In alarm the whole screen turns red and shows one action, a full-width <b>slide to silence</b> (60 s, stays armed). A drip of water or a bumped elbow cannot complete a slide. A lost fix gets its own amber takeover with <i>slide to acknowledge</i>. The touch lock is shown in the status bar and the lock bar. The silence slider always works, even while the screen is locked.',
   },
+  {
+    id: 'chart', file: 'anchor-chart', num: '06', name: 'Anchor Chart (MFD style)', tag: 'chartplotter-style anchor page',
+    render: rChart,
+    note: 'An anchor page in the style of a multifunction display. The alarm ring is always drawn at the same fraction of the plot, so the scale follows the radius. The boat is a triangle pointing along COG and is pinned just outside the ring when it is off-scale. Track dots (one per 5 s) fade with age. A sweeping COG tape runs across the top, and the side column shows distance, bearing, <b>max drift</b> and radius. <b>Touch:</b> 52 × 52 px <i>−</i>/<i>+</i> steppers change the radius in 10 ft steps. <i>Drop here</i> is hold-to-confirm, and tapping the chart never moves the anchor. The <i>Alarm</i> switch and the ring colour show armed (solid) or disarmed (muted, dashed). Swipe for Position (DD / DDM / DMS), Graph and System pages. <br><small>Layout ideas inspired by Boatingwiththebaileys/Marine-Displays (no licence; ideas only, no code or assets reused) — see docs/ui-design-references.md</small>',
+  },
 ];
 
 const ALIASES = {
   'watch-circle': 'watch', 'big-distance': 'big', 'swing-trail': 'trail', swing: 'trail',
-  'instrument-grid': 'grid', 'alarm-takeover': 'takeover', alarm: 'takeover',
+  'instrument-grid': 'grid', 'alarm-takeover': 'takeover', alarm: 'takeover', 'anchor-chart': 'chart', mfd: 'chart',
 };
 
 const params = new URLSearchParams(location.search);

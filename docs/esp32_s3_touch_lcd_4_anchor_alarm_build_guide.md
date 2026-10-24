@@ -235,7 +235,9 @@ for (;;) {
 
 ## 9. Display, touch and alarm policy
 
-UI concepts: [touch-LCD layout gallery](../layouts/touch-lcd/index.html). It has five static mockups: Watch Circle, Big Distance, Swing Trail, Instrument Grid and Alarm Takeover, each with day and night views. They are sketches, not firmware screens.
+UI concepts: [touch-LCD layout gallery](../layouts/touch-lcd/index.html). It has six static mockups: Watch Circle, Big Distance, Swing Trail, Instrument Grid, Alarm Takeover and Anchor Chart (MFD style), each with day and night views. They are sketches, not firmware screens.
+
+**Prior art on this board.** The open-source Marine-Displays project already runs SignalK and NMEA 2000 instrument pages, including an anchor-alarm page, on the ESP32-S3-Touch-LCD-4. [R23] It has no licence, so Moorpheus uses its layout ideas only, with no code or assets; see the [UI design references and licence log](ui-design-references.md). Its anchor page sets the anchor where the map is tapped. Moorpheus deliberately doesn't: the anchor reference changes only after a deliberate hold or slide (see Touch below).
 
 ### Backlight and night use
 
@@ -259,6 +261,7 @@ Dimming is through the CH32 PWM output into the backlight boost converter's feed
 
 - **Wet screen.** Spray and rain on a capacitive screen can cause false touches. Test with water on the glass (§12).
 - **Touch lock.** Lock the screen after a short idle time. Unlock with a deliberate gesture, such as a long press or slide.
+- **Anchor reference.** Never set or move the anchor from a single tap on the map. Dropping or moving the anchor needs a hold or slide confirmation.
 - **ACK.** A deliberate hold of about 1 s in a large ACK area. ACK silences for a bounded time, for example 60 s. The watch stays armed, and the alarm re-sounds if the condition remains. A false ACK caused by water therefore costs at most one silence period.
 - **Disarm and radius changes.** Use a two-step confirm. Do not allow disarm from the locked screen.
 - **Through-window touch.** A separate clear cover over the screen will probably stop touch working (**inferred**). Prefer a gasketed bezel with the glass exposed, or a dry location.
@@ -401,3 +404,5 @@ Report real prototype limitations rather than silently hiding them.
 [R21] [Reshine Display, "Does Dark Screen Save Power on LCD?"](https://www.reshine-display.com/does-dark-screen-save-power-on-lcd.html)
 
 [R22] [A. Carroll and G. Heiser, "An Analysis of Power Consumption in a Smartphone", USENIX ATC 2010](https://www.usenix.org/legacy/event/atc10/tech/full_papers/Carroll.pdf); summary in [waveshare-esp32-s3-touch-lcd-4.md](data/waveshare-esp32-s3-touch-lcd-4.md) §5.1
+
+[R23] [Boatingwiththebaileys/Marine-Displays](https://github.com/Boatingwiththebaileys/Marine-Displays/tree/22f1f5f2c78c73198f9e8ee392407172ae29d951), `ESP32-S3_Square_Display`, reviewed at commit 22f1f5f (no licence: ideas only); details in [ui-design-references.md](ui-design-references.md)

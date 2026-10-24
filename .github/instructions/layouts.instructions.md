@@ -15,3 +15,8 @@ applyTo: "layouts/**"
 - Each concept renders an exact 480 × 480 screen in normal, alarm and no-fix states, with a day and a night (dim, red-shifted) palette. `?shot=1` renders the bare screen at 1:1 for screenshots.
 - Keep touch targets large (about 48 px or more), make acknowledgement deliberate (for example slide-to-acknowledge) rather than a single tap, and respect `prefers-reduced-motion`.
 - Screenshots use the `touch` target name, for example `watch-circle-touch-normal.png`. Check panel facts in `docs/data/waveshare-esp32-s3-touch-lcd-4.md`.
+
+## Third-party designs and licences
+
+- Before drawing on another project's design, icons, fonts or code, log it in `docs/ui-design-references.md`: source URL and commit, licence, what was used and what was not.
+- A repository with no licence is all rights reserved: take ideas only, implemented in our own code and palette, and credit it in the concept caption. Copy code or assets only when the licence permits, and keep any required notice with them.
