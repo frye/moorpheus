@@ -22,6 +22,7 @@ Per-component spec, wiring, programming and power notes for the parts in the [Pi
 | SparkFun Large Piezo Alarm | Optional A | [sparkfun-large-piezo-alarm.md](sparkfun-large-piezo-alarm.md) |
 | Logic-level N-MOSFET driver | Optional A | [logic-level-n-mosfet-driver.md](logic-level-n-mosfet-driver.md) |
 | Optional 12 V boost converter | Optional A4 | [boost-converter-12v-optional.md](boost-converter-12v-optional.md) |
+| Adafruit BMP390 pressure/temperature breakout | Optional C, with either power configuration | [adafruit-bmp390.md](adafruit-bmp390.md) |
 
 ## Open discrepancies with the build guide
 
@@ -30,6 +31,7 @@ The controller, display, GNSS and power conflicts formerly listed here have been
 - **ANN-MB5 supply margin:** measure antenna voltage and current at the SMA under load with the installed cable. The estimated voltage is close to the antenna's 3.0 V minimum, and current at this rail is not specified.
 - **bq24074 termination behavior:** the stock termination resistor calculates to about 0.3 A at the 1 A setting, but charge completion on the selected battery is unmeasured. Verify the selected pack and charger configuration before relying on it.
 - **Boat input transient protection:** the candidate converters are below the cited unsuppressed load-dump voltage. A TVS sized for short transients is not proof of protection against a sustained load dump. Confirm the vessel's alternator/battery protection or qualify additional series/pre-regulator protection for that installation.
+- **Optional BMP390:** installed temperature bias, vent/pressure response, total breakout current and shared-I2C fault behavior remain unverified. Record the fitted BMP390/BMP390L and qualify the mounting; the internal temperature reading is not automatically outside-air temperature.
 - **Prototype measurements:** retain every "unverified" or "measure" label in the component notes until measured on the assembled design. Code examples remain syntax-checked against stub headers only; none have run on hardware.
 
 The separate [Step 1 display sample](../display-bring-up.md) has a real Pico SDK target build and host checks, but no hardware results.
