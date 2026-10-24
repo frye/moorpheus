@@ -41,6 +41,8 @@ A parallel edition is being planned around the [Waveshare ESP32-S3-Touch-LCD-4](
 
 Read the [ESP32-S3 touch edition guide](docs/esp32_s3_touch_lcd_4_anchor_alarm_build_guide.md) for parts, GPS wiring and boat power, and open [`layouts/touch-lcd/index.html`](layouts/touch-lcd/index.html) to browse all six touch concepts. One of them borrows layout ideas, but no code or assets, from the [Marine-Displays](https://github.com/Boatingwiththebaileys/Marine-Displays) project; [`docs/ui-design-references.md`](docs/ui-design-references.md) logs that and the other outside references.
 
+The touch guide also documents an optional [BMP390 pressure and temperature sensor](docs/data/adafruit-bmp390.md) for future local trends, with BME280 noted if humidity is wanted. Sensor histories and any later network weather display are plans only; neither is implemented or needed for the anchor alarm.
+
 ## What's in the repo
 
 - [`docs/build-steps.md`](docs/build-steps.md) is the step-by-step path through the build. Start with Step 1, which brings up the Pico, toolchain and display before adding other hardware. The page links to the full [build guide](docs/pico_2_w_anchor_alarm_build_guide_v2.md) and the detailed [Step 1 display instructions](docs/display-bring-up.md).
