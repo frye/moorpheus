@@ -96,7 +96,7 @@ No configuration. The converter passes bytes at any baud rate the two ends agree
 - **Direction turn-round.** The converter must release the bus after the GNSS stops sending, so that the board can transmit. The turn-round time is not published — **unverified**. If UBX writes fail, configure on the bench and run listen-only.
 - **Termination.** For a 1 m link at 38 400 baud, termination is not needed. Two 120 Ω terminators load the 3.3 V drivers more heavily. Leave the converter switch on and the board SW1 off as a starting point, then check the waveform on the bench. If no scope is available, choose the setting that gives zero UBX checksum errors over an hour.
 - **Boot-time noise.** The ESP32-S3 ROM may print on GPIO43 at boot ([waveshare-esp32-s3-touch-lcd-4.md](waveshare-esp32-s3-touch-lcd-4.md) §7). The parser must discard bytes until it sees a valid UBX sync and checksum.
-- **Size.** The DIN-rail case is larger than the GNSS breakout. Plan enclosure space or a short DIN rail.
+- **Size.** The DIN-rail case is larger than the GNSS breakout. Plan enclosure space or a short DIN rail. To fit everything inside the display enclosure, use the bare-board TTL TO RS485 (C) instead. It is a drop-in with the same connections and wiring ([waveshare-ttl-to-rs485-c.md](waveshare-ttl-to-rs485-c.md)).
 
 ## 8. Bring-up / test checklist
 

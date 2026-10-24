@@ -53,7 +53,7 @@ The biggest practical change is the display. E-paper keeps its image with no pow
 ```mermaid
 flowchart LR
     ANT["ANN-MB5 L1/L5 antenna"] --> GNSS["SparkFun NEO-F10N"]
-    GNSS -->|"3.3 V UART 38400"| CONV["TTL-to-RS485 converter"]
+    GNSS -->|"3.3 V UART 38400"| CONV["TTL-to-RS485 converter (B), or (C) in the box"]
     CONV -->|"RS485 A/B"| BOARD["Waveshare ESP32-S3-Touch-LCD-4"]
     BOARD --- LCD["4 inch 480x480 LCD + GT911 touch"]
     BOARD -->|"I2C via CH32 helper"| BUZ["Onboard buzzer"]
@@ -78,6 +78,7 @@ Product links identify parts. They are not guarantees of stock or price. Check c
 | 1 | NEO-F10N GNSS breakout, SMA | [SparkFun GPS-24114](https://www.sparkfun.com/sparkfun-gnss-l1-l5-breakout-neo-f10n-sma.html) | Same part as the Pico edition [R11] |
 | 1 | ANN-MB5 active L1/L5 antenna | [SparkFun GPS-25071](https://www.sparkfun.com/u-blox-multi-band-active-gnss-antenna-l1-l5-ann-mb5.html) | Same as the Pico edition [R13] |
 | 1 | TTL-to-RS485 converter, 3.3 V, automatic direction | [Waveshare TTL TO RS485 (B)](https://www.waveshare.com/ttl-to-rs485-b.htm) | Candidate. A smaller non-isolated module is acceptable [R14] |
+| (1) | **Option: in-box converter** instead of the (B) | [Waveshare TTL TO RS485 (C)](https://www.waveshare.com/ttl-to-rs485-c.htm) | Drop-in: same connections and wiring. Bare 42.8 × 15.2 mm board that fits inside the display enclosure; weaker surge protection; current unpublished [R24] |
 | 1 | Protected 1S Li-ion/LiPo pack with PH2.0 lead | Battery supplier | Must accept 2 A charge on V4. Capacity after measurement (§11) [R15] |
 | 1 | Fuse holder and 2 A slow-blow fuse | Marine chandler | Within 7 in of the source [R18] |
 | 1 | Panel breaker or switch, labelled | Marine chandler | Dedicated circuit [R18] |
@@ -160,7 +161,7 @@ The RGB panel uses almost every GPIO. There are no free GPIO for buttons, a soun
 
 The NEO-F10N is UART-only. It has no I²C, so it cannot go on the terminal I²C [R11]. The options compared in [sparkfun-neo-f10n-gnss.md](data/sparkfun-neo-f10n-gnss.md) §10 are:
 
-- **A. TTL-to-RS485 converter** into the board's RS485 port. **Chosen.** It keeps GNSS data off the shared I²C bus.
+- **A. TTL-to-RS485 converter** into the board's RS485 port. **Chosen.** It keeps GNSS data off the shared I²C bus. The baseline is the DIN-rail TTL TO RS485 (B) [R14]. The bare-board TTL TO RS485 (C) is an optional drop-in with the same wiring that fits inside the display enclosure [R24].
 - B. I²C-to-UART bridge on the terminal I²C. Rejected: a fault on the shared bus also stops the buzzer and the power latch.
 - C. A receiver with native I²C. Fallback only, same shared-bus risk.
 - D. Boat NMEA 0183 into RS485. Future option. It needs an opto-isolated input, because NMEA 0183 listeners should be isolated and the board's RS485 is not. [R16]
@@ -315,7 +316,7 @@ Known component figures (datasheets and estimates, not board measurements):
 
 - ESP32-S3 Wi-Fi TX peak 340 mA, modem-sleep up to 107.9 mA at 3.3 V. Light-sleep and deep-sleep cannot be used while the RGB panel shows an image. [R5][R7]
 - NEO-F10N + ANN-MB5 ≈ 38–45 mA at 3.3 V (estimate). [R11]
-- TTL-to-RS485 converter ≈ 54 mA at 5 V (Waveshare FAQ). Not measured at 3.3 V. [R14]
+- TTL-to-RS485 converter ≈ 54 mA at 5 V (Waveshare FAQ). Not measured at 3.3 V. [R14] The optional (C) has no published figure; budget it like the (B) until measured. [R24]
 - Backlight: not published. Expected to be the largest single load (**inferred**).
 - Screen content: dark vs light background is expected to change power by only a few percent, because the backlight dominates. **Unverified — measure** at full and night levels. Plan the budget on backlight level and on-time, not on palette. [R21][R22]
 
@@ -335,7 +336,7 @@ Build in phases. Do not move to the next phase until the current one passes. Det
 2. **Display, backlight and buzzer measurements.** Measure the backlight current and minimum stable level. Measure the VIN current with a full-screen white image and a full-screen black image at the same backlight level, at full and at night level. Check readability in sun and at night. Measure buzzer dB(A) at 1 m and through a closed door.
 3. **Boat power on the bench.** Wire fuse, switch and TVS. Apply VIN from a current-limited supply at 7, 10.5, 12.8, 14.8 and 16 V. Do not apply steady 36 V to this protected assembly: the SMBJ18A begins breakdown at 20 V. Any separate bare-board qualification at 36 V must have the external TVS disconnected; refit it before testing the boat-power assembly. [R18] Test reverse polarity at limited current. Measure inrush and the current in each mode.
 4. **Battery.** Check pack polarity and rating. Measure the charge current and temperature. With SYS_EN asserted, switch VIN off and on 20 times and log reset reasons.
-5. **GNSS.** Bench-configure the NEO-F10N, then cut its USB jumpers. Wire the converter to the RS485 terminal. Log NAV-PVT with zero checksum errors for an hour. Measure the I2C_VCC current and the antenna bias voltage.
+5. **GNSS.** Bench-configure the NEO-F10N, then cut its USB jumpers. Wire the converter to the RS485 terminal. With the in-box (C), record whether its 120 Ω jumper is fitted and tie its RS485 ground to board ground. Log NAV-PVT with zero checksum errors for an hour. Measure the I2C_VCC current and the antenna bias voltage.
 6. **Firmware skeleton.** Console on USB-Serial-JTAG. GNSS, alarm, I²C service and watchdog tasks with no UI. Check alarm timing and buzzer control.
 7. **UI.** Add LVGL screens based on the [layout gallery](../layouts/touch-lcd/index.html). Check that a UI stall does not delay the alarm.
 8. **Network and OTA.** Add the DataHub interface. Test reconnection, OTA with a deliberately failing self-test (expect rollback), and refusal of OTA while armed.
@@ -406,3 +407,5 @@ Report real prototype limitations rather than silently hiding them.
 [R22] [A. Carroll and G. Heiser, "An Analysis of Power Consumption in a Smartphone", USENIX ATC 2010](https://www.usenix.org/legacy/event/atc10/tech/full_papers/Carroll.pdf); summary in [waveshare-esp32-s3-touch-lcd-4.md](data/waveshare-esp32-s3-touch-lcd-4.md) §5.1
 
 [R23] [Boatingwiththebaileys/Marine-Displays](https://github.com/Boatingwiththebaileys/Marine-Displays/tree/22f1f5f2c78c73198f9e8ee392407172ae29d951), `ESP32-S3_Square_Display`, reviewed at commit 22f1f5f (no licence: ideas only); details in [ui-design-references.md](ui-design-references.md)
+
+[R24] [Waveshare TTL TO RS485 (C) wiki](https://www.waveshare.com/wiki/TTL_TO_RS485_(C)); note [waveshare-ttl-to-rs485-c.md](data/waveshare-ttl-to-rs485-c.md)

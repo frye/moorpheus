@@ -39,6 +39,7 @@ Some files serve both editions. Those files keep the Pico wiring in their main s
 | SparkFun NEO-F10N GNSS breakout | ESP32 touch edition (§10) | [sparkfun-neo-f10n-gnss.md](sparkfun-neo-f10n-gnss.md) |
 | u-blox ANN-MB5 antenna | ESP32 touch edition | [u-blox-ann-mb5-antenna.md](u-blox-ann-mb5-antenna.md) |
 | Waveshare TTL TO RS485 (B) converter | ESP32 touch edition | [waveshare-ttl-to-rs485-b.md](waveshare-ttl-to-rs485-b.md) |
+| Waveshare TTL TO RS485 (C) converter board | ESP32 touch edition, optional in-box alternative to the (B) | [waveshare-ttl-to-rs485-c.md](waveshare-ttl-to-rs485-c.md) |
 | Boat 12 V direct input protection | ESP32 touch edition | [marine-12v-direct-input-protection.md](marine-12v-direct-input-protection.md) |
 | Protected 1S Li-ion/LiPo pack | ESP32 touch edition (§10) | [lipo-1s-protected-battery.md](lipo-1s-protected-battery.md) |
 | Passives and general hardware | ESP32 touch edition | [passive-components-and-general-hardware.md](passive-components-and-general-hardware.md) |
@@ -59,7 +60,7 @@ The controller, display, GNSS and power conflicts formerly listed here have been
 - **ESP32 edition — onboard input TVS:** the SMAJ40CA does not clamp below 40 V, which is above the 36 V rating. The external TVS, fuse and load-dump review in [marine-12v-direct-input-protection.md](marine-12v-direct-input-protection.md) are required, not optional.
 - **ESP32 edition — charge current:** the V4 ETA6098 is set to 2 A fast charge, with no thermistor. The 4400 mAh Adafruit example pack is limited to 1 A charge. Choose a pack rated for ≥ 2 A charge, or rework R_ISET, and measure the real current. On V1–V3, confirm the SW6106 BSET value (4.2 V vs 4.35 V).
 - **ESP32 edition — DO1:** the wiki lists a "DO1" expander output, but none of the four schematics routes it to the terminal, and V4 has no DO1 net. No external alarm output exists without an added I²C device.
-- **ESP32 edition — GNSS interface:** the NEO-F10N has no I²C, so it connects through a TTL-to-RS485 converter. The direction of the converter's TTL pins, its turn-round time and its 3.3 V current are unverified.
+- **ESP32 edition — GNSS interface:** the NEO-F10N has no I²C, so it connects through a TTL-to-RS485 converter. The direction of the converter's TTL pins, its turn-round time and its 3.3 V current are unverified. This applies to both the (B) and the optional (C); the (C) also has an unclear terminator default (solder jumper, or a switch per one wiki note).
 - **ESP32 edition — boot-time UART output:** the ESP32-S3 UART0 default TX pin (GPIO43) is the RS485 receiver output on this board. Check boot behaviour with the console on USB-Serial-JTAG.
 - **ESP32 edition — buzzer and backlight:** the onboard buzzer's sound level, the minimum stable backlight level, backlight current and direct-sun readability are all unpublished. Measure them before deciding the alarm and night-mode policy.
 - **ESP32 edition — dark vs light background power:** the backlit IPS LCD is expected to draw nearly the same power on a black screen as on a white one (generic LCD figure 1–5 %). Measure white vs black full screen at the same backlight level before assuming any palette saving. See [waveshare-esp32-s3-touch-lcd-4.md](waveshare-esp32-s3-touch-lcd-4.md) §5.1.
