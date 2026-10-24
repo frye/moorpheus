@@ -73,7 +73,7 @@ function statusBar(st, night, opts = {}) {
   const lock = st.key === 'alarm'
     ? `<span class="sb-lock open" title="Silence control live">${ICON.lock(true)}</span>`
     : `<span class="sb-lock" title="Touch locked">${ICON.lock(false)}</span>`;
-  const dim = night ? `<span class="sb-i dimlvl">${ICON.moon}<b>8%</b></span>` : '';
+  const dim = night ? `<span class="sb-i dimlvl">${ICON.moon}<b>${st.key === 'alarm' ? '100%' : '8%'}</b></span>` : '';
   return `<div class="sb${opts.onTone ? ' on-tone' : ''}">
     <span class="pill ${tone}${st.key === 'alarm' ? ' pulse' : ''}">${label}</span>
     <span class="sb-clock">02:47</span>
@@ -534,7 +534,7 @@ const CONCEPTS = [
   {
     id: 'watch', file: 'watch-circle', num: '01', name: 'Watch Circle', tag: 'spatial picture + direct radius edit',
     render: rWatch,
-    note: 'A polar plot centred on the anchor fills the square screen, with the 150 ft alarm ring, recent swing positions and a big distance readout in the corner. <b>Touch:</b> drag the round handle on the ring to change the radius (value shown live, confirm on release); bottom buttons are 64 px tall. <i>Re-set</i> needs a long press; <i>Disarm…</i> opens a confirm sheet. In alarm the bar becomes a single <i>hold to silence</i> control that fills as you hold.',
+    note: 'A polar plot centred on the anchor fills the square screen, with the 150 ft alarm ring, recent swing positions and a big distance readout in the corner. <b>Touch:</b> drag the round handle on the ring to preview a radius change (value shown live); release opens a separate confirm sheet, and the existing radius stays active until explicitly confirmed. Bottom buttons are 64 px tall. <i>Re-set</i> needs a long press; <i>Disarm…</i> opens a confirm sheet. In alarm the bar becomes a single <i>hold to silence</i> control that fills as you hold.',
   },
   {
     id: 'big', file: 'big-distance', num: '02', name: 'Big Distance', tag: 'readable across the cockpit',
@@ -559,7 +559,7 @@ const CONCEPTS = [
   {
     id: 'chart', file: 'anchor-chart', num: '06', name: 'Anchor Chart (MFD style)', tag: 'chartplotter-style anchor page',
     render: rChart,
-    note: 'An anchor page in the style of a multifunction display. The alarm ring is always drawn at the same fraction of the plot, so the scale follows the radius. The boat is a triangle pointing along COG and is pinned just outside the ring when it is off-scale. Track dots (one per 5 s) fade with age. A sweeping COG tape runs across the top, and the side column shows distance, bearing, <b>max drift</b> and radius. <b>Touch:</b> 52 × 52 px <i>−</i>/<i>+</i> steppers change the radius in 10 ft steps. <i>Drop here</i> is hold-to-confirm, and tapping the chart never moves the anchor. The <i>Alarm</i> switch and the ring colour show armed (solid) or disarmed (muted, dashed). Swipe for Position (DD / DDM / DMS), Graph and System pages. <br><small>Layout ideas inspired by Boatingwiththebaileys/Marine-Displays (no licence; ideas only, no code or assets reused) — see docs/ui-design-references.md</small>',
+    note: 'An anchor page in the style of a multifunction display. The alarm ring is always drawn at the same fraction of the plot, so the scale follows the radius. The boat is a triangle pointing along COG and is pinned just outside the ring when it is off-scale. Track dots (one per 5 s) fade with age. A sweeping COG tape runs across the top, and the side column shows distance, bearing, <b>max drift</b> and radius. <b>Touch:</b> 52 × 52 px <i>−</i>/<i>+</i> steppers preview the radius in 10 ft steps; a separate confirm sheet applies it, with the existing radius active until confirmation. <i>Drop here</i> is hold-to-confirm, and tapping the chart never moves the anchor. The <i>Alarm</i> switch opens a confirm sheet before disarming; it and the ring colour show armed (solid) or disarmed (muted, dashed). Swipe for Position (DD / DDM / DMS), Graph and System pages. <br><small>Layout ideas inspired by Boatingwiththebaileys/Marine-Displays (no licence; ideas only, no code or assets reused) — see docs/ui-design-references.md</small>',
   },
 ];
 
@@ -570,9 +570,11 @@ const ALIASES = {
 
 const params = new URLSearchParams(location.search);
 const pConcept = params.get('concept');
+const pState = params.get('state');
+const concept = CONCEPTS.find((c) => c.id === pConcept);
 const sel = {
-  concept: CONCEPTS.some((c) => c.id === pConcept) ? pConcept : ALIASES[pConcept] || 'watch',
-  state: STATES[params.get('state')] ? params.get('state') : 'normal',
+  concept: concept ? concept.id : Object.hasOwn(ALIASES, pConcept) ? ALIASES[pConcept] : 'watch',
+  state: Object.hasOwn(STATES, pState) ? STATES[pState].key : 'normal',
   night: params.get('night') === '1',
 };
 const SHOT = params.get('shot') === '1';
@@ -664,7 +666,10 @@ if (SHOT) {
     if (tab) sel.concept = tab.dataset.id;
     else if (st) sel.state = st.dataset.id;
     else if (th) sel.night = th.dataset.id === 'night';
-    else if (thumb) { sel.concept = thumb.dataset.id; window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    else if (thumb) {
+      sel.concept = thumb.dataset.id;
+      window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
+    }
     else return;
     renderStage();
   });

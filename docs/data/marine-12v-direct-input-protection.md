@@ -118,7 +118,7 @@ No configuration on the power side. Firmware duties that depend on this wiring:
 
 ## 8. Bring-up / test checklist
 
-1. On a current-limited bench supply, apply VIN at 7, 10.5, 12.8, 14.8, 16 and 36 V. Record the input current in each display and Wi-Fi mode.
+1. On a current-limited bench supply, test the fused, switched, TVS-protected assembly at VIN of 7, 10.5, 12.8, 14.8 and 16 V. Record the input current in each display and Wi-Fi mode. Do not apply steady 36 V with the SMBJ18A fitted: its breakdown starts at 20 V [9]. Any separate bare-board qualification at 36 V [1][2] must have the external TVS disconnected; refit it before testing the boat-power assembly.
 2. Reverse VIN at 12 V with a 0.5 A current limit and no external TVS. Confirm no current flows (1N5822). Then fit the external TVS and confirm the reversed supply trips the limit.
 3. Measure the inrush current at power-up at 12.8 V. Check it against the fuse's time-current curve.
 4. Measure the voltage drop over the installed cable at 1 A.
