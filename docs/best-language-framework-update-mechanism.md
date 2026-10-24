@@ -4,9 +4,10 @@ Research snapshot: 22 October 2026. This is design guidance for the Pico 2 W anc
 not a report of implemented or hardware-tested software. The project remains a prototype, not
 a certified marine safety system.
 
-The first implementation is the standalone [Step 1 display bring-up](display-bring-up.md).
-It builds for Pico 2 W but has not run on hardware. Networking, alarm services
-and the field-update design below are not implemented in that sample.
+The first implementation is the standalone [Step 1 display bring-up](display-bring-up.md):
+a one-shot Hello application followed by a separate five-layout simulation.
+Both build for Pico 2 W but have not run on hardware. Networking, alarm services
+and the field-update design below are not implemented in either application.
 
 ## Recommendation
 

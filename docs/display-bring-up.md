@@ -5,11 +5,16 @@ checks that you can compile for the **Raspberry Pi Pico 2 W**, flash it over USB
 and drive the **Waveshare 4inch e-Paper HAT+ (E), SKU 27367**. Other Waveshare
 models need different drivers. [1][2]
 
-The sample writes **Hello Moorpheus** in black on a white background. It clears
-the image in software and sends it in **one full refresh**; there is no separate
+The first application writes **Hello Moorpheus** in black on a white background.
+It clears the image in software and sends it in **one full refresh**; there is no separate
 blank-screen refresh. It then sleeps and powers down the display. The picture
 remains after power is removed, so a picture alone does not prove the Pico is
 still running. [2]
+
+After that wiring check passes, use the separate
+[five-layout demo](#then-run-the-five-layout-demo) below to cycle simulated
+screens on the same hardware. It produces a different UF2; it does not change
+the Hello application's one-shot behavior.
 
 This is the foundation for later build phases, not anchor-alarm firmware. There
 is no GNSS, sounder, Wi-Fi, battery management or drag detection. Moorpheus remains
@@ -230,6 +235,136 @@ mode 0 at 4 MHz, and the vendor's per-byte CS framing. BUSY is **low while busy*
 Reset and refresh sequencing come from the E-model driver cited in [2]; the
 one-millisecond SPI-byte and two-second non-refresh BUSY deadlines are project
 choices. No application heap allocation or watchdog is used in this bench sample.
+
+## Then run the five-layout demo
+
+Complete and record the **Hello Moorpheus acceptance gate above first**. Leave
+the wiring unchanged and keep all other peripherals disconnected. This second
+application, in [`examples/display-layouts/`](../examples/display-layouts/),
+shows pre-rendered versions of the five normal-state
+[e-paper concepts](../layouts/). It is a display simulation, **not an anchor
+alarm**: every position, GPS fix, power reading, link status and event is fixed
+demo data. No GNSS, sounder or Wi-Fi is initialized.
+
+### Build and flash the separate application
+
+From the repository root, with the same SDK and compiler setup used for Hello:
+
+```sh
+cmake -S examples/display-layouts -B examples/display-layouts/build -DPICO_BOARD=pico2_w
+cmake --build examples/display-layouts/build --parallel 4
+```
+
+If needed, append the same `-DPICO_TOOLCHAIN_PATH` option used for Hello.
+The output is a separate file:
+
+```text
+examples/display-layouts/build/display_layouts.uf2
+```
+
+Wait **at least 180 seconds since the previous refresh**, including the Hello
+refresh, then enter BOOTSEL and copy `display_layouts.uf2` to the RP2350 drive.
+Reopen the USB serial terminal after the reboot. As with Hello, the application
+cannot enforce the interval across resets, reflashes or power cycles. [2]
+
+### What to observe
+
+The demo starts with **Watch Circle**, then cycles through **Big Number**,
+**Instrument Grid**, **Swing History** and **Status Ledger**, returning to Watch
+Circle indefinitely. Every image says `SIMULATED DATA`, with a numbered
+`DEMO ... NOT AN ANCHOR ALARM` footer and `NO LIVE SENSORS`.
+
+Each page uses **one full refresh**, about 19 seconds under Waveshare's reported
+conditions; partial refresh is not supported. After the complete update,
+POWER_OFF, DEEP_SLEEP and PWR-low sequence, the scheduler waits **180 seconds**
+before powering up for the next page. Thus page changes take longer than three
+minutes: 180 seconds is the powered-down cooldown, not the total page period.
+There are no intermediate blank-screen refreshes. [2]
+
+USB diagnostics identify the page, report update completion and the countdown,
+and repeat every five seconds so a late terminal connection does not require
+a reset. A BUSY, SPI or rendering fault powers the display down and **stops
+cycling until reset**, with explicit USB diagnostics and no automatic retries.
+Wait the required interval before resetting after a fault too; a failed
+software sequence may still have started a physical refresh.
+
+The pictures are 600-by-400 landscape images, stored rotated clockwise in the
+controller's native 400-by-600 addressing. Relative to the Hello picture, turn
+the panel **90 degrees counterclockwise** to read the demo. Check physical
+orientation on your board; it has not been confirmed on hardware.
+The six-colour previews in
+[`examples/display-layouts/assets/`](../examples/display-layouts/assets/)
+show the exact digital images, not measured panel colours.
+
+| Demo check | Evidence to keep |
+|---|---|
+| Separate application | Successful build and `display_layouts.uf2`; USB identifies the simulated demo |
+| Five images | Photographs of all five, in order, with readable demo labels and no corruption or cropping |
+| Orientation | Landscape output agrees with the preview images when the panel is turned as described |
+| Cadence and shutdown | USB timestamps and GP14 observations: PWR low between pages, next startup at least 180 s after previous completion |
+| Repeat | Status Ledger is followed by Watch Circle without a reset |
+| Fault handling | On a safely simulated fault, explicit USB fault and no further page attempts; do not alter live wiring |
+
+The Pico remains awake while waiting; this is not a low-power demonstration.
+Regular cycling supplies refreshes while healthy, but does not provide a
+white-only storage mode or maintenance during a fault. Follow Waveshare's
+white-clear guidance before long storage, and do not use this simulation as
+an unattended alarm or display application. [2]
+
+### Demo development checks
+
+The application reuses the Hello sample's E-model driver unchanged. Five packed
+4-bpp frames occupy **600,000 bytes of read-only flash**; rows are streamed through
+the same 200-byte buffer rather than allocating a full frame in RAM.
+Normal builds use checked-in packed assets and Python 3's standard library,
+not a browser or downloaded fonts.
+
+```sh
+cmake -S examples/display-layouts/tests -B examples/display-layouts/build-host
+cmake --build examples/display-layouts/build-host
+ctest --test-dir examples/display-layouts/build-host --output-on-failure
+```
+
+Host checks cover frame sizes and palette, bounded row access, repeated full
+frame transfers and driver restart/shutdown, BUSY/SPI timeouts, page order and
+wraparound, the exact 180-second cooldown boundary, and latched faults.
+Keep running the Hello host checks above as well.
+
+Both applications have passed their host checks and built for Pico 2 W using
+SDK 2.3.0 and Arm GCC 14.3.1. **Neither has hardware acceptance results.**
+Host checks and generated UF2s do not establish wiring, voltage, visible image
+quality, physical orientation or on-device timing.
+
+### Regenerating the demo images
+
+Only image regeneration needs Node.js 22 or newer, npm, Playwright's headless
+Chromium and internet access for the gallery's Satoshi and JetBrains Mono fonts.
+No font files are redistributed. From the repository root:
+
+```sh
+npm --prefix examples/display-layouts/tools ci
+cd examples/display-layouts/tools
+npx playwright install chromium --only-shell
+npm run generate
+npm test
+```
+
+The generator captures only each normal-state panel, not gallery controls or
+the surrounding frame, and adds simulation labels. It preserves layout geometry
+and fonts, but replaces grey styling with black/white and pastel margin-bar
+fills with solid supported colours for readability. Neutral antialiased pixels
+below 170/255 become black, the rest white; chromatic pixels use nearest RGB
+palette distance with no dithering. It then rotates clockwise and packs the
+controller nibbles, high nibble first. [2]
+
+Regeneration replaces the five `.bin` frames, matching landscape `.png` previews
+and SHA-256 manifest in `assets/`. The conversion tests reconstruct every
+preview pixel from the native packed frames and check orientation and nibble
+order against independent corner samples. Review all five previews against
+the gallery before committing regenerated assets; font-service or browser
+changes can affect rasterization. Missing fonts cause generation to fail rather
+than silently using a fallback. The normal firmware build validates asset
+sizes, palette, order and hashes before embedding them.
 
 ## Sources
 
