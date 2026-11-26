@@ -134,7 +134,7 @@ body.shot { margin: 0; width: 480px; height: 480px; overflow: hidden; background
   --alarm-bg: #c9131a; --alarm-bg2: #e0262c; --on-alarm: #ffffff;
 }
 .lcd.night {
-  --bg: #000000; --panel: #160504; --ink: #d4472d; --dim: #8e2e1e; --faint: #5a1b11; --line: #2c0c07;
+  --bg: #000000; --panel: #160504; --ink: #d4472d; --dim: #cf4e38; --faint: #5a1b11; --line: #2c0c07;
   --ok: #c2622c; --warn: #e08f2e; --alarm: #ff3a26; --accent: #e25a3b; --heat: #7d2a19;
   --ok-bg: #2a0d04; --on-ok: #c2622c;
   --warn-bg: #3d2104; --on-warn: #f0a040;

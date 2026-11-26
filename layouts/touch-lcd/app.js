@@ -237,22 +237,27 @@ function rBig(st) {
    CONCEPT 03 — SWING TRAIL
    ============================================================ */
 
-function trailPoints(key) {
+function trailPoints(st) {
   const pts = [];
   const N = 60; // 30 min at one point per 30 s
   for (let i = 0; i < N; i++) {
     const t = i / (N - 1);
     let a = 34 + 52 * Math.sin(i * 0.29) * (0.7 + 0.3 * Math.cos(i * 0.07));
     let d = 38 + 7 * Math.sin(i * 0.23 + 1) + 3 * Math.sin(i * 0.9);
-    if (key === 'alarm' && i > 38) {
+    if (st.key === 'alarm' && i > 38) {
       const u = (i - 38) / (N - 1 - 38);
       d = d + (172 - d) * Math.min(1, u * 1.15) ** 1.3;
       a = a + (56 - a) * Math.min(1, u * 1.5);
     }
-    if (key === 'nofix' && i > 47) break;
+    if (st.key === 'nofix' && i > 47) break;
     pts.push({ a, d, t });
   }
-  if (key === 'nofix') pts[pts.length - 1].d = 41;
+  if (st.key === 'nofix') {
+    pts[pts.length - 1].d = 41;
+  } else {
+    pts[pts.length - 1].a = boatAngle(st);
+    pts[pts.length - 1].d = st.dist;
+  }
   return pts;
 }
 
@@ -261,7 +266,7 @@ function trailSVG(st) {
   const isA = st.key === 'alarm', isN = st.key === 'nofix';
   // square-root radial scale: spreads out the swing near the anchor, keeps the 150 ft ring at the edge
   const R = (ft) => edge * Math.sqrt(ft / RADIUS);
-  const pts = trailPoints(st.key).map((p) => ({ ...p, xy: polar(cx, cy, R(p.d), p.a) }));
+  const pts = trailPoints(st).map((p) => ({ ...p, xy: polar(cx, cy, R(p.d), p.a) }));
   let segs = '';
   for (let i = 1; i < pts.length; i++) {
     const [x1, y1] = pts[i - 1].xy, [x2, y2] = pts[i].xy;
@@ -472,6 +477,7 @@ function chartPlot(st) {
     let a = 34 + 30 * Math.sin(i * 0.11), d = 37 + 5 * Math.sin(i * 0.17 + 0.6);
     if (isA) { const u = Math.max(0, (i - 20) / 39); d = d + (172 - d) * u ** 1.5; a = a + (56 - a) * u; }
     if (isN && i === N - 1) d = 41;
+    if (!isN && i === N - 1) { d = st.dist; a = boatAngle(st); }
     const rr = Math.min(d * k, clampR);
     const [x, y] = polar(cx, cy, rr, a);
     last = { x, y, d, a };
@@ -635,7 +641,9 @@ function fitStage() {
   if (!inner) return;
   const dev = inner.firstElementChild;
   const wrap = document.querySelector('.stage-wrap');
-  const availW = wrap.clientWidth - 16;
+  const style = getComputedStyle(wrap);
+  const horizontalPadding = Number.parseFloat(style.paddingLeft) + Number.parseFloat(style.paddingRight);
+  const availW = wrap.clientWidth - horizontalPadding;
   const availH = Math.max(320, window.innerHeight - 300);
   const w = dev.offsetWidth || 1, h = dev.offsetHeight || 1;
   const s = Math.min(1, availW / w, availH / h);

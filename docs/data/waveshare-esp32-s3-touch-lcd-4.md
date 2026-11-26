@@ -42,7 +42,7 @@ Nothing in this file has been measured on hardware. All schematic readings are t
 | Battery charger, V1–V3 | SW6106 power-bank IC; datasheet constant-current charge 2.5 A at 5 V input. Setting used on this board **unverified** | [4][5][6][17] |
 | Charge termination voltage, V4 | 4.2 V (ETA6098 internal preset) | [11] |
 | Battery temperature sensing | No NTC input on the V4 charger path — **inferred** from schematic | [3][11] |
-| RTC | PCF85063ATL, 32.768 kHz crystal, BAT1 header for a rechargeable cell only | [2][3] |
+| RTC | PCF85063ATL, 32.768 kHz crystal; leave BAT1 unpopulated unless a specific cell and current-limited charging path are qualified | [2][3] |
 | Buzzer | Onboard, driven by an SS8050 transistor from BEE_EN; sound level not published — **measure** | [3] |
 | RS485 | V4: SP3485EN at 3.3 V, automatic direction control; V3: MAX13487 at 5 V | [3][4] |
 | CAN | TJA1051T/3 transceiver, SM24CANB TVS, switchable 120 Ω termination | [3] |
@@ -305,7 +305,7 @@ i2c_master_transmit(ch32_dev, out, sizeof out, 50 /* ms timeout */);
   - The RS485 surge path goes to a net called EARTH, which is tied to GND by R71 0R [3].
   - NMEA 0183 listeners are expected to be opto-isolated [15]. A direct connection from this board to boat NMEA 0183 or NMEA 2000 needs an isolator. See build guide §6.
 - **Module temperature.** The N16R8 module is rated −40 to 65 °C ambient [10]. A sealed, sun-heated enclosure in the cockpit can exceed that. Keep the board below deck or shaded, and log the enclosure temperature.
-- **RTC battery.** BAT1 is charged directly from 3V3 through a Schottky diode with no current limit. Fit only a rechargeable cell (for example ML1220 class), never a CR coin cell [2][3].
+- **RTC battery.** BAT1 is charged directly from 3V3 through a Schottky diode with no current limit. Leave it unpopulated unless a specific rechargeable cell and an appropriate current-limiting charge circuit are qualified. A Schottky diode alone does not limit charge current; do not connect a coin cell directly to this header [2][3].
 - **Bonded screen.** Do not pry the screen off the board [2].
 - **IPS in sunlight.** No brightness figure is published [1][2]. Treat direct-sun readability as unknown until measured.
 - **USB-C VBUS also feeds USB0_5V**, and from there the charger and the 5 V rail [3]. Bench USB power and VIN can be present together through the ideal-diode OR. A powered USB cable still powers the GNSS through I2C_VCC.
@@ -314,7 +314,7 @@ i2c_master_transmit(ch32_dev, out, sizeof out, 50 /* ms timeout */);
 
 1. Read the revision under the screen line. Photograph both sides of the board. Confirm the CH32V003 (V4) or the TCA9554/SW6106 (V1–V3) [2].
 2. Power from USB-C only. Flash a Waveshare V4 demo. Confirm display, touch and an I²C scan (expect 0x24, 0x51, 0x5D or 0x14 on V4) [7][8].
-3. Bench supply on VIN at 7, 12, 14.8, 16 and 36 V with a current limit. Record the current with the backlight at full, at night level and off, with Wi-Fi idle, and during a Wi-Fi scan.
+3. With the external SMBJ18A disconnected, a current-limited bench supply may qualify the bare board at 36 V. Refit the TVS before testing the protected assembly. Test that assembly at 7, 12, 14.8 and 16 V only; do not apply steady 36 V with the SMBJ18A fitted because its breakdown starts at 20 V. Record current with the backlight at full, at night level and off, with Wi-Fi idle and during a Wi-Fi scan [marine-12v-direct-input-protection.md](marine-12v-direct-input-protection.md) §8.
 4. Measure the XL1509 output (≈ 5.2 V expected, **calculated**) and the 3V3 rail under load.
 5. Fit a protected 1S pack (polarity checked). Measure the charge current at 3.6 V cell voltage, the VIN current while charging, and the board temperature after 30 minutes.
 6. Assert SYS_EN, then remove VIN while logging the 3V3 rail and the ESP32 reset reason. Repeat 20 times. Then repeat without SYS_EN to confirm the board shuts down.

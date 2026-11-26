@@ -55,7 +55,7 @@ Planned wiring. Not built.
 | Breakout RX (J2-5) | Converter TTL data **output** | Board → GNSS, used only for occasional UBX writes |
 | Converter RS485 A+ | Board terminal 3 (A) | Twisted pair |
 | Converter RS485 B− | Board terminal 4 (B) | |
-| Converter RS485 GND | Board terminal 2 or 8 (GND) | Optional reference. Same ground anyway |
+| Converter RS485 GND | Board terminal 2 or 8 (GND) | Required reference: the board's SP3485 is non-isolated, so bond the converter's isolated RS485 side to board ground to keep A/B within its common-mode range [sparkfun-neo-f10n-gnss.md](sparkfun-neo-f10n-gnss.md) §10.2 |
 | Converter 120R switch | On (default) | Starting point. Board SW1 RS485 terminator off. See §7 |
 
 ```mermaid

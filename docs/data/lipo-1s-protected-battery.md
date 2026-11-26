@@ -161,7 +161,7 @@ In the planned [ESP32-S3 touch edition](../esp32_s3_touch_lcd_4_anchor_alarm_bui
 - **Polarity.** PH2.0 and JST-PH leads from different vendors come in both polarities [4]. Meter the plug against the board silkscreen before connecting.
 - **Charge-current rating.** On V4 the pack must accept 2 A [9]. With the ≤ 0.5 C guidance in §2 [4], that means a cell of **at least 4 Ah**. Adafruit's 4400 mAh pack is limited to 1 A charge [4], so it does **not** meet this as stated. Options:
   1. Choose a cell whose datasheet allows ≥ 2 A charge (for example a 1S2P 18650 pack of ≥ 5 Ah with a PCM rated above 2 A). This is an example to evaluate, not a selected part.
-  2. Rework R_ISET to a higher value. The datasheet gives 1.2 A at 150 kΩ [9]. This is a board modification and is **untested**.
+  2. Rework R_ISET only if the resulting charge current is configured and measured at or below the selected pack's documented limit. The datasheet gives 1.2 A at 150 kΩ [9], so that setting still exceeds the 4400 mAh pack's 1 A limit. This is a board modification and is **untested**.
   3. Put a small series resistance or current-limited supply in the charge path. Not recommended, because the same path feeds the boost.
 - **Connector current.** A PH2.0 connector is a small connector carrying up to 2 A of charge current plus the boost input current on battery. Its current rating is not published on the Waveshare pages — **unverified**. Check the connector and lead temperature during the first full-current charge.
 - **No thermistor.** The board cannot stop charging on pack temperature. Mount the pack away from the board's regulators, keep it below deck, and follow §7's marine safety notes [5].
