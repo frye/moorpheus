@@ -60,8 +60,8 @@ Physical pins are numbered on the Pico 2 W 40-pin edge, not on a Raspberry Pi HA
 | 3 | GND | — | Common ground |
 | 4 | GP2 | SPI0 SCK / UART0 CTS / I2C1 SDA / PWM1 A | Spare |
 | 5 | GP3 | SPI0 TX / UART0 RTS / I2C1 SCL / PWM1 B | Spare |
-| **6** | **GP4** | SPI0 RX / UART1 TX / **I2C0 SDA** / PWM2 A | **I2C0 SDA (buzzer, gauge)** |
-| **7** | **GP5** | SPI0 CSn / UART1 RX / **I2C0 SCL** / PWM2 B | **I2C0 SCL (buzzer, gauge)** |
+| **6** | **GP4** | SPI0 RX / UART1 TX / **I2C0 SDA** / PWM2 A | **I2C0 SDA (buzzer, gauge, optional BMP390; build guide Optional C [15])** |
+| **7** | **GP5** | SPI0 CSn / UART1 RX / **I2C0 SCL** / PWM2 B | **I2C0 SCL (buzzer, gauge, optional BMP390; build guide Optional C [15])** |
 | 8 | GND | — | Common ground |
 | 9 | GP6 | SPI0 SCK / UART1 CTS / I2C1 SDA / PWM3 A | Spare |
 | 10 | GP7 | SPI0 TX / UART1 RTS / I2C1 SCL / PWM3 B | Spare |
@@ -399,7 +399,7 @@ The 4 MHz SPI clock and 8000 ms watchdog timeout are project starting values, no
 6. With both USB and SYS5 present, confirm no reverse current into SYS5 when SYS5 is off, and none into VBUS.
 7. Confirm 3V3 OUT and PERIPH3V3 are not connected (continuity open with power off). Confirm VBUS pin 40 is unconnected.
 8. Confirm GPS NMEA/UBX arrives on GP1 at 38400 baud and that no USB stdio data appears on GP0.
-9. Run an I2C0 scan at 100 kHz: expect 0x34 (baseline buzzer) and 0x36 (battery build).
+9. Run an I2C0 scan at 100 kHz: expect 0x34 (baseline buzzer), 0x36 (battery build), and 0x77 if the Optional C BMP390 is fitted with its default address [15].
 10. Run the e-paper full init, refresh and sleep sequence. Confirm BUSY toggles and the watchdog does not fire during a full refresh.
 11. Check GP15 and GP16: the idle level is high (≥ 2.0 V) and pressing pulls it low. Confirm the debounce works.
 12. Optional A: confirm GP17 stays low through power-up, reset, BOOTSEL and watchdog reboot (measure the gate with a scope).
@@ -424,5 +424,5 @@ The 4 MHz SPI clock and 8000 ms watchdog timeout are project starting values, no
 12. [12] cyw43-driver `cyw43.h` (power-management constants, `cyw43_wifi_pm`). https://github.com/georgerobotics/cyw43-driver/blob/main/src/cyw43.h
 13. [13] MicroPython firmware for Raspberry Pi Pico 2 W. https://micropython.org/download/RPI_PICO2_W/
 14. [14] pico-extras `pico_sleep`. https://github.com/raspberrypi/pico-extras/tree/master/src/rp2_common/pico_sleep
-15. [15] Moorpheus build guide v2.0, `docs/pico_2_w_anchor_alarm_build_guide_v2.md` (§4–6, §8, §11–12, Optional A/B).
+15. [15] Moorpheus build guide v2.0, `docs/pico_2_w_anchor_alarm_build_guide_v2.md` (§4–6, §8, §11–12, Optional A/B/C).
 16. [16] Pico SDK 2.3.1 release notes. https://github.com/raspberrypi/pico-sdk/releases/tag/2.3.1

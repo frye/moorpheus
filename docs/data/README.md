@@ -29,6 +29,7 @@ Some files serve both editions. Those files keep the Pico wiring in their main s
 | SparkFun Large Piezo Alarm | Optional A | [sparkfun-large-piezo-alarm.md](sparkfun-large-piezo-alarm.md) |
 | Logic-level N-MOSFET driver | Optional A | [logic-level-n-mosfet-driver.md](logic-level-n-mosfet-driver.md) |
 | Optional 12 V boost converter | Optional A4 | [boost-converter-12v-optional.md](boost-converter-12v-optional.md) |
+| Adafruit BMP390 pressure/temperature breakout | Optional C, with either power configuration | [adafruit-bmp390.md](adafruit-bmp390.md) |
 
 ## ESP32-S3 touch edition (planned)
 
@@ -56,6 +57,7 @@ The controller, display, GNSS and power conflicts formerly listed here have been
 - **ANN-MB5 supply margin:** measure antenna voltage and current at the SMA under load with the installed cable. The estimated voltage is close to the antenna's 3.0 V minimum, and current at this rail is not specified.
 - **bq24074 termination behavior:** the stock termination resistor calculates to about 0.3 A at the 1 A setting, but charge completion on the selected battery is unmeasured. Verify the selected pack and charger configuration before relying on it.
 - **Boat input transient protection:** the candidate converters are below the cited unsuppressed load-dump voltage. A TVS sized for short transients is not proof of protection against a sustained load dump. Confirm the vessel's alternator/battery protection or qualify additional series/pre-regulator protection for that installation.
+- **Pico edition — optional BMP390:** installed temperature bias, vent/pressure response, total breakout current and shared-I2C fault behavior remain unverified. Record the fitted BMP390/BMP390L and qualify the mounting; the internal temperature reading is not automatically outside-air temperature.
 - **ESP32 edition — VIN to battery hand-off:** on V4 the battery only reaches the 5 V rail while SYS_EN (CH32 EXIO5) or the PWR key holds the Q4 latch on. Measure the hand-off gap and check for brown-out resets with firmware asserting SYS_EN. See [waveshare-esp32-s3-touch-lcd-4.md](waveshare-esp32-s3-touch-lcd-4.md) §4.1.
 - **ESP32 edition — VIN rating:** the silkscreen says 7–36 V, but the V4 schematic and Waveshare's V4 reference say 5–36 V. The build guide and the component notes plan for 7–36 V until Waveshare confirms otherwise.
 - **ESP32 edition — onboard input TVS:** the SMAJ40CA does not clamp below 40 V, which is above the 36 V rating. The external TVS, fuse and load-dump review in [marine-12v-direct-input-protection.md](marine-12v-direct-input-protection.md) are required, not optional.

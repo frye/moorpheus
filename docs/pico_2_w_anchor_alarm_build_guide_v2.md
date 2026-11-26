@@ -21,7 +21,7 @@ Baseline:
 - Two buttons wired directly to the Pico.
 - PredictWind DataHub local Wi-Fi connection.
 
-Optional section A replaces the Qwiic Buzzer with the Large Piezo Alarm. Optional section B removes all backup-battery components and runs on external power only. The options may be combined.
+Optional section A replaces the Qwiic Buzzer with the Large Piezo Alarm. Optional section B removes all backup-battery components and runs on external power only. Optional section C adds a BMP390 pressure/temperature sensor for future local trends. The options may be combined.
 
 This is a prototype plan, not a certified marine safety system or fabrication-ready PCB schematic. Part choices, source ratings, grounding, cable routing and environmental protection must be reviewed before permanent installation. Use an independent anchor-watch method during trials.
 
@@ -52,6 +52,7 @@ flowchart LR
     BUTTONS["STATUS and ACK/TEST"] -->|GPIO| PICO
     PICO <-->|I2C0| GAUGE["MAX17048 - battery version"]
     PICO -->|I2C0 baseline| QBUZZ["Qwiic Buzzer"]
+    PICO <-.->|"I2C0 optional"| WEATHER["BMP390 pressure / temperature"]
     PICO -->|"GP17 optional driver"| ALARM["Large Piezo Alarm option"]
     PICO <-->|"2.4 GHz local Wi-Fi"| HUB["PredictWind DataHub"]
     HUB <-->|Local network| PHONE["Phone interface"]
@@ -105,6 +106,13 @@ The MCP23017 and its interrupt/pull-up wiring are omitted. Do not buy it for thi
 | 1 | 6.8 kohm ±5% gate-to-source pull-down | Resistor assortment | RP2350-E9 A2 workaround; with up to 330 ohm gate series resistor, GP17-to-ground remains below 8.2 kohm |
 | 1, only if needed | Regulated 12 V boost converter | Part to be qualified | Optional louder supply; correct input range/current/enable behavior |
 
+### Optional C pressure and temperature
+
+| Qty | Item | Link / sourcing | Notes |
+|---|---|---|---|
+| 1 | Adafruit BMP390 STEMMA QT breakout | [Adafruit 4816](https://www.adafruit.com/product/4816) | Optional local pressure/temperature; not a complete weather station [R9] |
+| As needed | STEMMA QT/Qwiic flying-lead adapter and protected vented mounting | Match breakout and installation | No native Pico socket; allow cable clearance and thermal separation [R9] |
+
 ### General hardware
 
 10 kohm button pull-ups, 100 kohm display CS pull-up, 150 kohm and 100 kohm sense-divider resistors, 100 nF filter/decoupling capacitors, strain relief, suitable wire, terminal blocks, enclosure/window, sound opening, antenna mounting plate and upstream fuse/protection. Do not assume hobby boards are weatherproof or protected against marine supply transients.
@@ -126,7 +134,7 @@ flowchart TD
     D --> VSYS["Pico VSYS pin 39"]
     SYS --> BUCK["MPM3610 3.3 V"]
     BUCK --> P3["PERIPH3V3"]
-    P3 --> LOADS["GPS, display, gauge logic, baseline buzzer"]
+    P3 --> LOADS["GPS, display, gauge logic, baseline buzzer; optional BMP390"]
     DC --> SENSE["EXT5 divider to GP26"]
 ```
 
@@ -140,7 +148,7 @@ flowchart TD
 | LOAD | Charger load output to PowerBoost input |
 | SYS5 | PowerBoost output to MPM3610 input, isolation-diode anode and optional sounder |
 | Diode cathode | Pico VSYS, physical pin 39 |
-| PERIPH3V3 | Buck output to display VCC, GPS 3V3, buzzer power and gauge logic VIN |
+| PERIPH3V3 | Buck output to display VCC, GPS 3V3, buzzer power, gauge logic VIN and optional BMP390 VIN |
 | Pico 3V3 OUT pin 36 | Leave separate from PERIPH3V3 |
 | Pico VBUS pin 40 | Do not connect SYS5 here |
 | Pico 3V3_EN pin 37 | Leave at default; not a generic supply pin |
@@ -171,8 +179,8 @@ Physical pin numbers refer to the Pico's 40-pin header, not a Raspberry Pi compu
 |---|---:|---:|---|
 | GPS UART0 TX | GP0 | 1 | GPS RX |
 | GPS UART0 RX | GP1 | 2 | GPS TX |
-| I2C0 SDA | GP4 | 6 | Buzzer SDA and gauge SDA |
-| I2C0 SCL | GP5 | 7 | Buzzer SCL and gauge SCL |
+| I2C0 SDA | GP4 | 6 | Buzzer SDA, gauge SDA and optional BMP390 SDA |
+| I2C0 SCL | GP5 | 7 | Buzzer SCL, gauge SCL and optional BMP390 SCK/SCL |
 | Display DC | GP8 | 11 | DC |
 | Display CS | GP9 | 12 | CS |
 | Display SPI1 SCK | GP10 | 14 | CLK |
@@ -206,6 +214,7 @@ flowchart LR
     P <-->|"GP4 SDA / GP5 SCL"| I["3.3 V I2C bus"]
     I --- B["Qwiic Buzzer 0x34"]
     I --- F["MAX17048 0x36 - battery build"]
+    I -.- W["BMP390 0x77 - Optional C"]
 ```
 
 ### GPS
@@ -215,6 +224,8 @@ PERIPH3V3 → GPS 3V3. The NEO-F10N interface is UART-only; configure UART0 with
 ### I2C
 
 GP4/GP5 on I2C0; start at 100 kHz. Qwiic Buzzer address 0x34; MAX17048 address 0x36. Use flying-lead Qwiic adapter; no Pico Qwiic socket is assumed. Check combined pull-ups and keep all pull-ups at 3.3 V. [R4, R5]
+
+Optional C shares this bus at default address 0x77, or 0x76 with the breakout's ADDR jumper bridged; neither conflicts with the baseline devices. Power BMP390 VIN from PERIPH3V3, not its regulator output 3Vo, which stays disconnected. Its CS, SDO and INT remain unconnected for I2C polling. Recheck pull-ups, rise time, short-harness capacitance and mixed-power behavior after adding it. [R9]
 
 ### Buttons
 
@@ -237,6 +248,8 @@ Check for carbon fiber/foil/metal roof reinforcement. Separate antenna and cable
 Recommended production-like starting point: Pico SDK C/C++ with CYW43/lwIP networking and supported peripheral drivers. MicroPython can accelerate prototyping, but low-power behavior must be measured. No ESP-IDF APIs apply to this RP2350 build.
 
 Use independent services for GNSS, alarm state, power/SOC, buttons, display, networking, persistence and watchdog. Apply bounded I2C/UART/display timeouts. The RP2350 watchdog maximum is about 16.7 seconds, shorter than the e-paper's roughly 19-second full refresh: keep watchdog and alarm processing live during BUSY waits rather than blocking on the display. Use USB stdio for debugging; UART0 GP0/GP1 belongs to GNSS. Service wireless using the chosen SDK architecture correctly; do not assume blocking peripheral code is harmless.
+
+If Optional C is fitted, a future low-priority sensor service can collect compensated, timestamped pressure and temperature without blocking GNSS or sounding. Use bounded transfers/retries and explicit missing/stale states; do not treat an intentionally absent option as a baseline fault. Sensor failure can still hold the shared I2C bus low and affect the baseline buzzer or gauge; optional software does not provide electrical isolation. Weather history/storage and network requests must remain subordinate to alarm processing. No sensor firmware is implemented. [R9]
 
 Pico 2 W sleep/dormant/wireless behavior must be qualified for the exact SDK/core. Do not equate a Python delay with efficient hardware sleep, or promise ESP32-style connected-light-sleep numbers. Validate clock/peripheral restoration, timer wake and button wake. Initial firmware can remain awake with radio power-saving while establishing correctness.
 
@@ -275,6 +288,8 @@ The Spectra 6 panel refreshes in approximately 19 sec; use its exact driver, not
 
 Direct GPIO eliminates the MCP23017 HAL adapter. Assign SPI1 GP10/GP11, software CS GP9, DC GP8, reset GP12, BUSY GP13 and PWR GP14. Keep GNSS/alarm work running while BUSY is asserted. Add timeout/fault handling and complete the documented shutdown sequence before sleep.
 
+Optional C could add local readings and history to a later status page or phone view. Sampling is separate from refreshing: retain all refresh limits and normal/backup/emergency policies above. Show units, sample age, gaps and insufficient trend history; do not leave a stale reading looking live. [R9]
+
 A 4-bpp framebuffer needs 120,000 bytes; RGB888 needs 720,000. Pico 2 W has 520 kB SRAM, so full RGB888 does not fit in internal SRAM. Use controller-compatible packed output or streamed rows, leaving memory for wireless/queues. [R1]
 
 Emergency entry screen:
@@ -295,6 +310,8 @@ SOC is an estimate; 1% is not guaranteed usable energy. Reserve energy for sound
 Verify DataHub configuration exposes a 2.4 GHz local network and permits communication between phone and alarm. No internet is necessary for the local web interface. Serve HTTP plus WebSocket state, including fix age, armed state, mode, battery/external supply, anchor distance and alarm.
 
 Send full state on connection/reconnection, approximately five-second updates while viewed and immediate state changes. Authenticate configuration, acknowledge commands and avoid duplicate actions on reconnect. Show stale/disconnected data visibly. Generic local sockets on suspended phone apps must not be the only overnight alert mechanism.
+
+A future weather display could combine Optional C's offline local trends with a separately labelled forecast. Wi-Fi/DataHub connectivity alone does not guarantee internet access. Provider, location, credentials/licensing and freshness policy remain undecided; show source, observation or forecast issue/valid time and stale/offline state. A missing forecast must not stop local readings or the anchor alarm. Keep measured local pressure distinct from sea-level-reduced weather-service pressure. [R9]
 
 ## 11. Battery sizing and measurement
 
@@ -329,6 +346,8 @@ PERIPH3V3; disconnect that bench supply lead before connecting the external rail
 
 Fault-injection requirements: external-power interruption, DataHub loss, GNSS loss/stale fixes, display BUSY stuck, I2C stuck, button held at reset, restart while armed, power flicker, low battery while sounding and interrupted settings writes. Report real prototype limitations rather than silently hiding them.
 
+If Optional C is selected, add the sensor checks in C4 after the Step 1 on-device gate; they do not replace the baseline acceptance tests.
+
 ## 13. References
 
 [R1] [Official Pico 2 W datasheet: pinout, VSYS power path and USB isolation](https://pip.raspberrypi.com/documents/RP-008304-DS)
@@ -346,6 +365,8 @@ Fault-injection requirements: external-power interruption, DataHub loss, GNSS lo
 [R7] [F10N integration manual](https://content.u-blox.com/sites/default/files/documents/NEO-F10N_IntegrationManual_UBXDOC-963802114-12193.pdf)
 
 [R8] [Per-component references and open discrepancies](data/README.md)
+
+[R9] [Adafruit BMP390 component reference: manufacturer specifications, wiring, temperature limitations and future trends](data/adafruit-bmp390.md), with [Adafruit product 4816](https://www.adafruit.com/product/4816) and the [Bosch BMP390 datasheet](https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bmp390-ds002.pdf).
 
 ## Optional A — Large Piezo Alarm instead of Qwiic Buzzer
 
@@ -440,6 +461,7 @@ flowchart TD
     P3 --> GPS["GPS 3V3"]
     P3 --> EPD["Display VCC"]
     P3 --> QB["Qwiic Buzzer if selected"]
+    P3 -.-> WEATHER["BMP390 VIN if Optional C selected"]
     REG --> ALT["Large Piezo Alarm supply if selected"]
 ```
 
@@ -460,7 +482,7 @@ No charger, battery, fuel gauge or PowerBoost belongs in this diagram. All groun
 | Fuel-gauge I2C connection | Removed |
 | GP26 EXT5 divider | Optional diagnostic only; not required |
 
-External-only purchases are the common-components table plus one sounder choice. Do not purchase the battery-only table. A robust 5 V source must tolerate combined MCU Wi-Fi, GNSS/antenna, display and sounder peaks with margin. Verify with actual simultaneous-load tests; average power alone is insufficient.
+External-only purchases are the common-components table plus one sounder choice, and the Optional C table only if selected. Do not purchase the battery-only table. A robust 5 V source must tolerate combined MCU Wi-Fi, GNSS/antenna, display and sounder peaks with margin. Verify with actual simultaneous-load tests; average power alone is insufficient.
 
 ### B4. Firmware changes
 
@@ -504,3 +526,31 @@ Acceptance tests:
 6. Validate closed-door sound and DataHub loss behavior.
 
 Choose this version for simplicity only if dependence on the boat's electrical supply is acceptable. It removes backup endurance rather than achieving it by another method.
+
+## Optional C — Local pressure and temperature trends
+
+### C1. Part and scope
+
+Use the [Adafruit BMP390 STEMMA QT breakout, product 4816](https://www.adafruit.com/product/4816), approximately 25.4 × 17.78 mm for the PCB before cable clearance. It can be added to the battery-backed build or combined with Optional A/B, without another GPIO or changes to the sounder choice. This is documentation only; sensor acquisition, logging and weather screens are not implemented. [R9]
+
+Bosch specifies typical absolute pressure accuracy of ±0.50 hPa at 300–1100 hPa and 0–65 °C, and typical relative accuracy of ±0.03 hPa at 700–1100 hPa and 25–40 °C per 10 kPa steps. Internal temperature accuracy is ±0.5 °C at 25 °C, but ±1.5 °C over 0–65 °C. These are sensor specifications, not verified installed accuracy. Record the fitted BMP390/BMP390L before qualification. [R9]
+
+The BME280 is an alternative if humidity matters: it adds relative humidity with lower quoted pressure performance. It is not required alongside the BMP390. Check its own wiring/specifications before substituting. [R9]
+
+### C2. Wiring and mounting
+
+Connect VIN to PERIPH3V3, GND to common ground, SDA to GP4/pin 6 and SCK/SCL to GP5/pin 7. Leave 3Vo, CS, SDO and INT disconnected. Keep default address 0x77 and the existing 100 kHz bus unless later qualification justifies a change. Use a flying-lead adapter, check combined pull-ups and follow §5's USB/peripheral back-power precautions. Optional B still supplies the sensor from its unchanged PERIPH3V3 rail. [R9]
+
+The internal temperature is affected by PCB heat and is typically above ambient. Keep the sensor away from the Pico, radio, converters, display electronics and direct sun, with access to the air being measured. Label an enclosure reading honestly; it is not automatically outside-air temperature. Pressure needs a sheltered atmospheric vent, not a sealed box. Protect against spray, salt and condensation without blocking or coating the pressure port. Neither the breakout nor this plan establishes a waterproof installation. **Measure** the installed temperature bias and pressure response. [R9]
+
+### C3. Future trends and weather
+
+Plan timestamped local pressure in hPa, temperature in °C and a pressure-change/history view that works offline. Sampling cadence, history duration, trend calculation windows and persistence policy remain future firmware decisions. Show gaps and restarts; do not manufacture samples or a trend arrow without enough valid history. Keep the existing display refresh and battery/emergency policies; weather must not add alarm delays or force unnecessary wakes. [R9]
+
+Local measured pressure is not necessarily the sea-level-reduced value from a forecast service. Keep them labelled separately; do not use noisy GNSS altitude changes as an automatic correction or interpret pressure alone as a reliable storm warning. A later internet-weather page is a separate optional source, subject to §10, not an anchor-watch dependency. The BMP390 alone cannot supply humidity, wind, rain or a complete forecast. [R9]
+
+### C4. Power and acceptance
+
+The chip's typical 3.2 µA at 1 Hz is not the breakout's total draw: include its regulator, level shifting and bus pull-ups. Sampling settings and total consumption are **unverified — measure** in the selected installation. Do not change battery runtime claims without measurement. [R9]
+
+After passing the Step 1 gate, verify the address and supply/pull-up voltages; compare pressure and temperature against an independent reference with the display, Wi-Fi and converters active. Check vent response, local-history gaps/restarts and visible stale/offline states. Test sensor disconnection and shared-bus faults while monitoring GNSS and alarm behavior, including the baseline I2C sounder's shared failure risk. Repeat supply/current checks in the chosen power configurations. Keep all hardware qualification claims open until results are recorded. [R9]
